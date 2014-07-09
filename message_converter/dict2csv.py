@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 class Dict2Csv(object):
     """Process a JSON object to a CSV file"""
     collection = None
+    first_record_header = None
 
     def __init__(self, outline):
         self.rows = []
@@ -22,6 +23,13 @@ class Dict2Csv(object):
             raise ValueError('You must specify at least one value for "map"')
 
         key_map = OrderedDict()
+
+        if 'first_record' in outline:
+            # every row will be prefixed with the same first_record value
+            # store this header as the first header in the key_map
+            self.first_record_header, value = outline['first_record']
+            key_map[self.first_record_header] = value
+
         for header, key in outline['map']:
             splits = key.split('.')
             splits = [int(s) if s.isdigit() else s for s in splits]
@@ -47,10 +55,13 @@ class Dict2Csv(object):
         row = {}
 
         for header, keys in self.key_map.items():
-            try:
-                row[header] = reduce(operator.getitem, keys, item)
-            except (KeyError, TypeError):
-                row[header] = None
+            if header == self.first_record_header:
+                row[header] = keys
+            else:
+                try:
+                    row[header] = reduce(operator.getitem, keys, item)
+                except (KeyError, TypeError):
+                    row[header] = None
 
         return row
 
@@ -64,7 +75,6 @@ class Dict2Csv(object):
             if write_header_row:
                 writer.writeheader()
             writer.writerows(self.rows)
-
 
     def write_string(self, write_header_row=True):
         """Write the processed rows to the given filename

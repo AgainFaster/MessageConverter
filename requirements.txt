@@ -17,4 +17,4 @@ tornado==3.2.2
 raven==5.0.0
 djangorestframework==2.3.14
 Markdown==2.4.1
--e git+https://github.com/jdunck/python-unicodecsv.git@13a300d82d8002e1db141540830e10f3c8dd7606#egg=unicodecsv-master
+psycopg2==2.5.3

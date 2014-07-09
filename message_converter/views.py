@@ -5,6 +5,7 @@ from rest_framework import status
 
 # from MyProject.MyApp import CalcClass
 from message_converter.dict2csv import Dict2Csv
+from message_converter.models import IncomingMessage, MessageType, ConvertedMessageQueue
 
 
 class FlatFileView(APIView):
@@ -30,20 +31,34 @@ class FlatFileView(APIView):
         # application/json is in request.POST['_content_type']
         # djangorest loads the json into dict request.DATA
 
-        # HDR record
-        outline = {"map": [['billing_address_city', 'billing_address.city'], ['billing_address_firstname', 'billing_address.firstname']]}
+        original_message = IncomingMessage.objects.create(type=MessageType.objects.get(type='JSON'),
+                                                                   message=request.POST['_content_type'])
+
+        # Convert to HDR record
+        outline = {
+            "map": [['billing_address_city', 'billing_address.city'], ['billing_address_firstname', 'billing_address.firstname']],
+            "first_record": ['record_type', 'HDR']
+        }
         dict2csv = Dict2Csv(outline)
         dict2csv.process_each_item_as_row([request.DATA])
-        csv_str = dict2csv.write_string()
-        print(csv_str)
+        csv_str = dict2csv.write_string(write_header_row=False)
 
-        # DTL records
-        outline = {"map": [['line_item_name', 'name'], ['line_item_quantity', 'quantity']], "collection": "line_items"}
+        # Convert each DTL record
+        outline = {
+            "map": [['line_item_name', 'name'], ['line_item_quantity', 'quantity']],
+            "collection": "line_items",
+            "first_record": ['record_type', 'DTL']
+        }
+
         dict2csv = Dict2Csv(outline)
         dict2csv.process_each_item_as_row(request.DATA)
         # dict2csv.write_csv()
-        csv_str = dict2csv.write_string()
+        csv_str += dict2csv.write_string(write_header_row=False)
         print(csv_str)
 
-        message = 'Flat file created successfully.'
+        ConvertedMessageQueue.objects.create(original_message=original_message, converted_message=csv_str,
+                                             type=MessageType.objects.get(type='CSV'))
+
+
+        message = 'Data converted and queued successfully.'
         return Response(message, status=status.HTTP_200_OK)
