@@ -21,6 +21,7 @@ class ConvertedMessageQueue(models.Model):
     converted_message = models.TextField()
     type = models.ForeignKey(MessageType)
     created = models.DateTimeField(auto_now_add=True)
+    delivered = models.BooleanField(default=False)
 
     def __str__(self):
         return '%s - %s' % (self.type, self.created)

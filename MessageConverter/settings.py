@@ -204,3 +204,13 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny'
     ]
 }
+
+FTP_USER = ''
+FTP_PASSWD = ''
+FTP_HOST = ''
+
+# Load the local settings file
+try:
+    from MessageConverter.local_settings import *
+except ImportError:
+    pass
