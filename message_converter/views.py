@@ -1,3 +1,4 @@
+from django.http import Http404
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -5,10 +6,10 @@ from rest_framework import status
 
 # from MyProject.MyApp import CalcClass
 from message_converter.dict2csv import Dict2Csv
-from message_converter.models import IncomingMessage, MessageType, ConvertedMessageQueue
+from message_converter.models import IncomingMessage, MessageType, ConvertedMessageQueue, ApiProject
 
 
-class FlatFileView(APIView):
+class ApiProjectView(APIView):
 
     def get(self, request, *args, **kw):
         # Process any get params that you may need
@@ -31,8 +32,17 @@ class FlatFileView(APIView):
         # application/json is in request.POST['_content_type']
         # djangorest loads the json into dict request.DATA
 
-        original_message = IncomingMessage.objects.create(type=MessageType.objects.get(type='JSON'),
-                                                                   message=request.POST['_content_type'])
+        if not 'project_name' in kw:
+            raise Http404
+
+        project_name = kw['project_name']
+
+        try:
+            project = ApiProject.objects.get(name=project_name)
+        except ApiProject.DoesNotExist:
+            raise Http404
+
+        original_message = IncomingMessage.objects.create(project=project, message=request.POST['_content_type'])
 
         # Convert to HDR record
         outline = {
@@ -52,12 +62,11 @@ class FlatFileView(APIView):
 
         dict2csv = Dict2Csv(outline)
         dict2csv.process_each_item_as_row(request.DATA)
-        # dict2csv.write_csv()
         csv_str += dict2csv.write_string(write_header_row=False)
         print(csv_str)
 
-        ConvertedMessageQueue.objects.create(original_message=original_message, converted_message=csv_str,
-                                             type=MessageType.objects.get(type='CSV'))
+        ConvertedMessageQueue.objects.create(original_message=original_message,
+                                             converted_message=csv_str, project=project)
 
 
         message = 'Data converted and queued successfully.'
