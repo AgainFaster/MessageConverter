@@ -5,7 +5,7 @@ from rest_framework import status
 
 # from MyProject.MyApp import CalcClass
 from message_converter.dict2csv import Dict2Csv
-from message_converter.models import IncomingMessage, MessageType, ConvertedMessageQueue, ApiProject
+from message_converter.models import IncomingMessage, ConvertedMessageQueue, ApiProject
 
 
 class ApiProjectView(APIView):
