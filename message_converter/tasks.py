@@ -6,7 +6,6 @@ from celery.utils.log import get_task_logger
 
 import time
 from datetime import datetime, timedelta
-from MessageConverter import settings
 from message_converter.models import ConvertedMessageQueue, Project, LastDelivery
 
 logger = get_task_logger(__name__)
