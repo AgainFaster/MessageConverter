@@ -1,4 +1,5 @@
 from django.http import Http404
+from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -34,39 +35,42 @@ class ApiProjectView(APIView):
         if not 'project_name' in kw:
             raise Http404
 
-        project_name = kw['project_name']
-
         try:
-            project = ApiProject.objects.get(name=project_name)
+            project = ApiProject.objects.get(name=kw['project_name'])
         except ApiProject.DoesNotExist:
             raise Http404
 
-        original_message = IncomingMessage.objects.create(project=project, message=request.POST['_content_type'])
+        if project.from_type.type == 'JSON' and project.to_type.type == 'CSV':
+            original_message = IncomingMessage.objects.create(project=project, message=request.POST['_content_type'])
 
-        # Convert to HDR record
-        outline = {
-            "map": [['billing_address_city', 'billing_address.city'], ['billing_address_firstname', 'billing_address.firstname']],
-            "first_record": ['record_type', 'HDR']
-        }
-        dict2csv = Dict2Csv(outline)
-        dict2csv.process_each_item_as_row([request.DATA])
-        csv_str = dict2csv.write_string(write_header_row=False)
+            # json:
+            # [{"map": [["billing_address_city", "billing_address.city"], ["billing_address_firstname", "billing_address.firstname"]], "first_record": ["record_type", "HDR"]},
+            # {"map": [["line_item_name", "name"], ["line_item_quantity", "quantity"]], "first_record": ["record_type", "DTL"], "collection": "line_items"}]
+            # outlines = json.loads(project.conversion_argument)
+            # for outline in outlines:
 
-        # Convert each DTL record
-        outline = {
-            "map": [['line_item_name', 'name'], ['line_item_quantity', 'quantity']],
-            "collection": "line_items",
-            "first_record": ['record_type', 'DTL']
-        }
+            # Convert to HDR record
+            outline = {"map": [['billing_address_city', 'billing_address.city'], ['billing_address_firstname', 'billing_address.firstname']], "first_record": ['record_type', 'HDR']}
+            dict2csv = Dict2Csv(outline)
+            dict2csv.process_each_item_as_row([request.DATA])
+            csv_str = dict2csv.write_string(write_header_row=False)
 
-        dict2csv = Dict2Csv(outline)
-        dict2csv.process_each_item_as_row(request.DATA)
-        csv_str += dict2csv.write_string(write_header_row=False)
-        print(csv_str)
+            # Convert each DTL record
+            outline = {
+                "map": [['line_item_name', 'name'], ['line_item_quantity', 'quantity']],
+                "collection": "line_items",
+                "first_record": ['record_type', 'DTL']
+            }
 
-        ConvertedMessageQueue.objects.create(original_message=original_message,
-                                             converted_message=csv_str, project=project)
+            dict2csv = Dict2Csv(outline)
+            dict2csv.process_each_item_as_row(request.DATA)
+            csv_str += dict2csv.write_string(write_header_row=False)
+            print(csv_str)
 
+            ConvertedMessageQueue.objects.create(original_message=original_message,
+                                                 converted_message=csv_str, project=project)
+        else:
+            raise NotImplementedError('Currently only JSON to CSV conversion is implemented.')
 
         message = 'Data converted and queued successfully.'
         return Response(message, status=status.HTTP_200_OK)

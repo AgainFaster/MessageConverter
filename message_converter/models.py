@@ -1,3 +1,6 @@
+import re
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -29,7 +32,7 @@ class FtpAccessSetting(models.Model):
 
 
 class Project(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, validators=[RegexValidator('^[\w-]+$', u'Enter only alphanumeric, dash, or underscore.', 'invalid')])
     description = models.TextField(blank=True, null=True)
 
     from_type = models.ForeignKey(MessageType, related_name="from_type_projects")

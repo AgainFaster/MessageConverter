@@ -5,6 +5,9 @@ from south.v2 import DataMigration
 from django.db import models
 
 class Migration(DataMigration):
+    depends_on = (
+        ("djcelery", "0004_v30_changes"),
+    )
 
     def forwards(self, orm):
         "Write your forwards methods here."

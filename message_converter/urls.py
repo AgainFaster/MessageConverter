@@ -4,5 +4,5 @@ from django.conf.urls import patterns, include, url
 from message_converter.views import ApiProjectView
 
 urlpatterns = patterns('',
-                       url(r'^api/(?P<project_name>\w+)[/]?$', ApiProjectView.as_view(), name='create_flat_file_view'),)
+                       url(r'^api/(?P<project_name>[\w-]+)[/]?$', ApiProjectView.as_view(), name='api_project_view'),)
 
