@@ -41,7 +41,8 @@ class ApiProjectView(APIView):
             raise Http404
 
         if project.from_type.type == 'JSON' and project.to_type.type == 'CSV':
-            original_message = IncomingMessage.objects.create(project=project, message=request.POST['_content_type'])
+            original_message = IncomingMessage.objects.create(project=project,
+                                                              message=request.POST.get('_content', str(request.DATA)))
 
             # json:
             # [{"map": [["billing_address_city", "billing_address.city"], ["billing_address_firstname", "billing_address.firstname"]], "first_record": ["record_type", "HDR"]},

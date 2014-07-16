@@ -1,5 +1,3 @@
-import re
-from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -44,6 +42,9 @@ class Project(models.Model):
     delivery_frequency = models.IntegerField(
         help_text="How often to deliver converted messages (in minutes). Use 0 for immediate. Minimum is the frequency of the deliver_messages periodic task.")
 
+    def __str__(self):
+        return self.name
+
 
 class ApiProject(Project):
 
@@ -68,7 +69,7 @@ class IncomingMessage(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return '%s - %s' % (self.type, self.created)
+        return '%s - %s' % (self.project, self.created)
 
 
 # Create your models here.
