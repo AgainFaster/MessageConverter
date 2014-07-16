@@ -1,8 +1,8 @@
 from django.http import Http404
-from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+import json
 
 # from MyProject.MyApp import CalcClass
 from message_converter.dict2csv import Dict2Csv
@@ -42,29 +42,25 @@ class ApiProjectView(APIView):
 
         if project.from_type.type == 'JSON' and project.to_type.type == 'CSV':
             original_message = IncomingMessage.objects.create(project=project,
-                                                              message=request.POST.get('_content', str(request.DATA)))
-
-            # json:
-            # [{"map": [["billing_address_city", "billing_address.city"], ["billing_address_firstname", "billing_address.firstname"]], "first_record": ["record_type", "HDR"]},
-            # {"map": [["line_item_name", "name"], ["line_item_quantity", "quantity"]], "first_record": ["record_type", "DTL"], "collection": "line_items"}]
-            # outlines = json.loads(project.conversion_argument)
-            # for outline in outlines:
+                                                              message=request.POST.get('_content', json.dumps(request.DATA)))
 
             # Convert to HDR record
-            outline = {"map": [['billing_address_city', 'billing_address.city'], ['billing_address_firstname', 'billing_address.firstname']], "first_record": ['record_type', 'HDR']}
+            outline = {
+                "map": [['billing_address_city', 'order.billing_address.city'], ['billing_address_firstname', 'order.billing_address.firstname']],
+                "first_record": ['record_type', 'HDR']
+            }
             dict2csv = Dict2Csv(outline)
-            dict2csv.process_each_item_as_row([request.DATA])
+            dict2csv.process(request.DATA)
             csv_str = dict2csv.write_string(write_header_row=False)
 
             # Convert each DTL record
             outline = {
                 "map": [['line_item_name', 'name'], ['line_item_quantity', 'quantity']],
-                "collection": "line_items",
+                "collection": "order.line_items",
                 "first_record": ['record_type', 'DTL']
             }
-
             dict2csv = Dict2Csv(outline)
-            dict2csv.process_each_item_as_row(request.DATA)
+            dict2csv.process(request.DATA)
             csv_str += dict2csv.write_string(write_header_row=False)
             print(csv_str)
 

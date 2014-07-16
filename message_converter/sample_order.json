@@ -1,85 +1,76 @@
-
 {
-  "status": "Flagged",
-  "line_items": [
-    {
-      "price": "0.00",
-      "product_id": "AFDP-SC-SI-0001",
-      "name": "Spring Collars (each)",
-      "quantity": 2
+  "order": {
+    "id": "R154085346524",
+    "status": "complete",
+    "channel": "spree",
+    "email": "spree@example.com",
+    "currency": "USD",
+    "placed_on": "2014-02-03T17:29:15.219Z",
+    "totals": {
+      "item": 200,
+      "adjustment": 20,
+      "tax": 10,
+      "shipping": 10,
+      "payment": 220,
+      "order": 220
     },
-    {
-      "price": "0.00",
-      "product_id": "AFDP-BS-45-0090",
-      "name": "Again Faster Bumper Plates 45-lb (each) ",
-      "quantity": 2
-    },
-    {
-      "price": "0.00",
-      "product_id": "AFDP-BS-25-0050",
-      "name": "Again Faster Bumper Plates 25-lb (each)",
-      "quantity": 2
-    },
-    {
-      "price": "0.00",
-      "product_id": "AFSB-TB-20-0048",
-      "name": "20-kg Again Faster Team Barbell Silver",
-      "quantity": 1
-    },
-    {
-      "price": "559.00",
-      "product_id": "AFPP-BB-14-0185",
-      "name": "Again Faster Team Barbell with 140-lb Plate Set",
-      "quantity": 1
-    }
-  ],
-  "billing_address": {
-    "city": "Boston",
-    "firstname": "Jule",
-    "lastname": "Slootbeek",
-    "address2": "",
-    "zipcode": "02127",
-    "state": "MA",
-    "address1": "783 E Sixth #2",
-    "country": "US"
-  },
-  "placed_on": "2014-05-30T10-42-53",
-  "adjustments": [
-    {
-      "name": "MA State Taxes",
-      "value": "34.94"
-    },
-    {
-      "name": "Shipping",
-      "value": "0.00"
-    }
-  ],
-  "totals": {
-    "item": "559.00",
-    "adjustment": [
-      "34.94"
+    "line_items": [
+      {
+        "product_id": "SPREE-T-SHIRT",
+        "name": "Spree T-Shirt",
+        "quantity": 2,
+        "price": 100
+      },
+      {
+        "product_id": "WOMBAT-T-SHIRT",
+        "name": "WOMBAT T-Shirt",
+        "quantity": 2,
+        "price": 100
+      }
     ],
-    "tax": "34.94",
-    "order": "593.94",
-    "shipping": "0.00"
-  },
-  "currency": "USD",
-  "payments": [
-    {
-      "payment_method": "Credit Card"
-    }
-  ],
-  "shipping_address": {
-    "city": "Boston",
-    "firstname": "Jule",
-    "lastname": "Slootbeek",
-    "address2": "",
-    "zipcode": "02210",
-    "state": "MA",
-    "address1": "1 Design Center Place",
-    "country": "US"
-  },
-  "id": 47184,
-  "email": "jslootbeek@gmail.com",
-  "channel": "US"
+    "adjustments": [
+      {
+        "name": "Tax",
+        "value": 10
+      },
+      {
+        "name": "Shipping",
+        "value": 5
+      },
+      {
+        "name": "Shipping",
+        "value": 5
+      }
+    ],
+    "shipping_address": {
+      "firstname": "Joe",
+      "lastname": "Smith",
+      "address1": "1234 Awesome Street",
+      "address2": "",
+      "zipcode": "90210",
+      "city": "Hollywood",
+      "state": "California",
+      "country": "US",
+      "phone": "0000000000"
+    },
+    "billing_address": {
+      "firstname": "Joe",
+      "lastname": "Smith",
+      "address1": "1234 Awesome Street",
+      "address2": "",
+      "zipcode": "90210",
+      "city": "Hollywood",
+      "state": "California",
+      "country": "US",
+      "phone": "0000000000"
+    },
+    "payments": [
+      {
+        "number": 63,
+        "status": "completed",
+        "amount": 220,
+        "payment_method": "Credit Card"
+      }
+    ]
+  }
 }

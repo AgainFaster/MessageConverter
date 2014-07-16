@@ -31,23 +31,41 @@ class Dict2Csv(object):
             key_map[self.first_record_header] = value
 
         for header, key in outline['map']:
-            splits = key.split('.')
-            splits = [int(s) if s.isdigit() else s for s in splits]
-            key_map[header] = splits
+            key_map[header] = self.split_dot_list(key)
 
         self.key_map = key_map
+
         if 'collection' in outline:
-            self.collection = outline['collection']
+            self.collection = self.split_dot_list(outline['collection'])
+
+    def split_dot_list(self, str_list):
+        splits = str_list.split('.')
+        return [int(s) if s.isdigit() else s for s in splits]
+
+    def process(self, data):
+        if self.collection:
+            self.process_each_item_as_row(data)
+        else:
+            self.process_single_item_as_row(data)
+
+    def process_single_item_as_row(self, data):
+        """Process a single json-loaded dict
+        """
+        logging.info(data)
+        self.rows.append(self.process_row(data))
 
     def process_each_item_as_row(self, data):
-        """Process each item of a json-loaded dict
+        """Process each dict of a json-loaded collection
         """
-        if self.collection and self.collection in data:
-            data = data[self.collection]
+        if self.collection:
+            try:
+                data = reduce(operator.getitem, self.collection, data)
+            except KeyError:
+                # move forward anyway
+                pass
 
         for d in data:
-            logging.info(d)
-            self.rows.append(self.process_row(d))
+            self.process_single_item_as_row(d)
 
     def process_row(self, item):
         """Process a row of json data against the key map
