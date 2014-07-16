@@ -36,6 +36,8 @@ class Project(models.Model):
     from_type = models.ForeignKey(MessageType, related_name="from_type_projects")
     to_type = models.ForeignKey(MessageType, related_name="to_type_projects")
 
+    conversion_parameters = models.TextField(blank=True, null=True, help_text="JSON parameters")
+
     send_to_ftp = models.ForeignKey(FtpAccessSetting, related_name='send_to_ftp_projects', null=True, blank=True, help_text="An FTP destination to deliver the converted messages.")
     send_to_api = models.ForeignKey(ApiAccessSetting, related_name='send_to_api_projects', null=True, blank=True, help_text="An API destination to deliver the converted messages.")
 

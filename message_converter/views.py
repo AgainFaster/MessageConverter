@@ -5,7 +5,7 @@ from rest_framework import status
 import json
 
 # from MyProject.MyApp import CalcClass
-from message_converter.dict2csv import Dict2Csv
+from message_converter.json2csv import Json2Csv
 from message_converter.models import IncomingMessage, ConvertedMessageQueue, ApiProject
 
 
@@ -44,24 +44,25 @@ class ApiProjectView(APIView):
             original_message = IncomingMessage.objects.create(project=project,
                                                               message=request.POST.get('_content', json.dumps(request.DATA)))
 
-            # Convert to HDR record
-            outline = {
-                "map": [['billing_address_city', 'order.billing_address.city'], ['billing_address_firstname', 'order.billing_address.firstname']],
-                "first_record": ['record_type', 'HDR']
+            """
+            Example:
+            {
+                "outlines": [
+                    {"first_record": ["record_type", "HDR"], "map": [["billing_address_city", "order.billing_address.city"], ["billing_address_firstname", "order.billing_address.firstname"]]},
+                    {"collection": "order.line_items", "first_record": ["record_type", "DTL"], "map": [["line_item_name", "name"], ["line_item_quantity", "quantity"]]}
+                ]
             }
-            dict2csv = Dict2Csv(outline)
-            dict2csv.process(request.DATA)
-            csv_str = dict2csv.write_string(write_header_row=False)
 
-            # Convert each DTL record
-            outline = {
-                "map": [['line_item_name', 'name'], ['line_item_quantity', 'quantity']],
-                "collection": "order.line_items",
-                "first_record": ['record_type', 'DTL']
-            }
-            dict2csv = Dict2Csv(outline)
-            dict2csv.process(request.DATA)
-            csv_str += dict2csv.write_string(write_header_row=False)
+            """
+
+            parameters = json.loads(project.conversion_parameters)
+
+            csv_str = ""
+            for outline in parameters['outlines']:
+                json2csv = Json2Csv(outline)
+                json2csv.process(request.DATA)
+                csv_str += json2csv.write_string(write_header_row=False)
+
             print(csv_str)
 
             ConvertedMessageQueue.objects.create(original_message=original_message,

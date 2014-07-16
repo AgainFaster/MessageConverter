@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from functools import reduce
 import csv
+import json
 import operator
 from collections import OrderedDict
 import logging
@@ -9,7 +10,7 @@ import io
 logging.basicConfig(level=logging.DEBUG)
 
 
-class Dict2Csv(object):
+class Json2Csv(object):
     """Process a JSON object to a CSV file"""
     collection = None
     first_record_header = None
@@ -41,6 +42,10 @@ class Dict2Csv(object):
     def split_dot_list(self, str_list):
         splits = str_list.split('.')
         return [int(s) if s.isdigit() else s for s in splits]
+
+    def process_json(self, json_data):
+        data = json.loads(json_data)
+        self.process(data)
 
     def process(self, data):
         if self.collection:
