@@ -1,6 +1,8 @@
 from django.core.validators import RegexValidator
 from django.db import models
+from django.conf import settings
 
+AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 class MessageType(models.Model):
     type = models.CharField(max_length=100)
@@ -92,3 +94,15 @@ class LastDelivery(models.Model):
 
     def __str__(self):
         return '%s - %s' % (self.project, self.last_delivered)
+
+class ApiToken(models.Model):
+    class Meta:
+        unique_together = (("client_id", "key"),)
+
+    client_id = models.CharField(max_length=50)
+    key = models.CharField(max_length=50)
+    user = models.OneToOneField(AUTH_USER_MODEL, related_name='api_auth_token')
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '%s - %s - %s' % (self.client_id, self.key, self.user)

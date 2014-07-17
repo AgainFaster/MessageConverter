@@ -12,18 +12,8 @@ from message_converter.models import IncomingMessage, ConvertedMessageQueue, Api
 class ApiProjectView(APIView):
 
     def get(self, request, *args, **kw):
-        # Process any get params that you may need
-        # If you don't need to process get params,
-        # you can skip this part
-        get_arg1 = request.GET.get('arg1', None)
-        get_arg2 = request.GET.get('arg2', None)
 
-        # Any URL parameters get passed in **kw
-        # myClass = CalcClass(get_arg1, get_arg2, *args, **kw)
-        # result = myClass.do_work()
-
-        result = ((1, 2, 3, ), (4, 5, get_arg1,))
-        #
+        result = {'success': True, 'message': 'GET is currently not implemented. Try POST.'}
         response = Response(result, status=status.HTTP_200_OK)
         return response
 
@@ -70,5 +60,5 @@ class ApiProjectView(APIView):
         else:
             raise NotImplementedError('Currently only JSON to CSV conversion is implemented.')
 
-        message = 'Data converted and queued successfully.'
-        return Response(message, status=status.HTTP_200_OK)
+        result = {'success': True, 'message': 'Data converted and queued successfully.'}
+        return Response(result, status=status.HTTP_200_OK)
