@@ -12,10 +12,7 @@ from message_converter.models import IncomingMessage, ConvertedMessageQueue, Api
 class ApiProjectView(APIView):
 
     def get(self, request, *args, **kw):
-
-        result = {'success': True, 'message': 'GET is currently not implemented. Try POST.'}
-        response = Response(result, status=status.HTTP_200_OK)
-        return response
+        return self._response(request, 'GET is currently not implemented. Try POST.')
 
     def post(self, request, *args, **kw):
         # the raw json is in request.POST['_content']
@@ -28,7 +25,10 @@ class ApiProjectView(APIView):
         try:
             project = ApiProject.objects.get(name=kw['project_name'])
         except ApiProject.DoesNotExist:
-            raise Http404
+            return self._response(request, 'Project name does not exist.', False)
+
+        if not request.DATA.get('request_id'):
+            return self._response(request, 'Missing request_id.', False)
 
         if project.from_type.type == 'JSON' and project.to_type.type == 'CSV':
             original_message = IncomingMessage.objects.create(project=project,
@@ -60,5 +60,8 @@ class ApiProjectView(APIView):
         else:
             raise NotImplementedError('Currently only JSON to CSV conversion is implemented.')
 
-        result = {'success': True, 'message': 'Data converted and queued successfully.'}
-        return Response(result, status=status.HTTP_200_OK)
+        return self._response(request, 'Data converted and queued successfully.')
+
+    def _response(self, request, summary=None, success=True):
+        response_status = status.HTTP_200_OK if success else status.HTTP_500_INTERNAL_SERVER_ERROR
+        return Response({'request_id': request.DATA.get('request_id'), 'summary': summary}, status=response_status)
