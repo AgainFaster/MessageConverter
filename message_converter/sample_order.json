@@ -1,6 +1,6 @@
 {
   "order": {
-    "id": "R154085346524",
+    "id": "R154085346750",
     "status": "complete",
     "channel": "spree",
     "email": "spree@example.com",
@@ -19,13 +19,19 @@
         "product_id": "SPREE-T-SHIRT",
         "name": "Spree T-Shirt",
         "quantity": 2,
-        "price": 100
+        "price": 100,
+        "action": "U",
+        "customer_id": "ABC",
+        "order_id": "R154085346750"
       },
       {
         "product_id": "WOMBAT-T-SHIRT",
-        "name": "WOMBAT T-Shirt",
-        "quantity": 2,
-        "price": 100
+        "name": "Wombat T-Shirt",
+        "quantity": 3,
+        "price": 105.33,
+        "action": "U",
+        "customer_id": "ABC",
+        "order_id": "R154085346750"
       }
     ],
     "adjustments": [
@@ -51,7 +57,8 @@
       "city": "Hollywood",
       "state": "California",
       "country": "US",
-      "phone": "0000000000"
+      "phone": "0000000000",
+      "name": "Joe Smith"
     },
     "billing_address": {
       "firstname": "Joe",
@@ -62,7 +69,8 @@
       "city": "Hollywood",
       "state": "California",
       "country": "US",
-      "phone": "0000000000"
+      "phone": "0000000000",
+      "name": "Joe Smith"
     },
     "payments": [
       {
@@ -71,6 +79,10 @@
         "amount": 220,
         "payment_method": "Credit Card"
       }
-    ]
-  }
+    ],
+    "action": "U",
+    "customer_id": "ABC"
+  },
+  "parameters": {},
+  "request_id": "53cecd59736d616f92100000"
 }
