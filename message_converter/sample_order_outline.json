@@ -1,0 +1,19 @@
+{
+    "outlines": [
+        {
+            "first_record": ["record_type", "HDR"],
+            "map": [
+                ["billing_address_city", "order.billing_address.city"],
+                ["billing_address_firstname", "order.billing_address.firstname"]
+            ]
+        },
+        {
+            "collection": "order.line_items",
+            "first_record": ["record_type", "DTL"],
+            "map": [
+                ["line_item_name", "name"],
+                ["line_item_quantity", "quantity"]
+            ]
+        }
+    ]
+}
