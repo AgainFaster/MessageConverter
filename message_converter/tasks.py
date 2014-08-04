@@ -1,12 +1,17 @@
 from __future__ import absolute_import
 import ftplib
+from io import StringIO
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
 import time
 from datetime import datetime, timedelta
-from message_converter.models import ConvertedMessageQueue, Project, LastDelivery
+# from rest_framework.request import Request
+import requests
+import json
+from message_converter.models import ConvertedMessageQueue, Project, LastDelivery, PullProject, LastPull, \
+    IncomingMessage
 
 logger = get_task_logger(__name__)
 
@@ -25,7 +30,89 @@ def pull_messages():
     This should be scheduled as a periodic task
 
     """
-    NotImplementedError('Pull messages task is not currently implemented')
+
+    for pull_project in PullProject.objects.all():
+        # read file into memory?
+        # Pull file from FTP
+
+        last_pull, created = LastPull.objects.get_or_create(pull_project=pull_project)
+
+        span = datetime.now() - last_pull.last_pulled
+        if span < timedelta(minutes=pull_project.delivery_frequency):
+            continue  # not enough time has passed
+
+        session = ftplib.FTP(pull_project.pull_from_ftp.host, pull_project.pull_from_ftp.user, pull_project.pull_from_ftp.password)
+
+        if pull_project.pull_from_ftp.path:
+            path = pull_project.pull_from_ftp.path.strip()
+            session.cwd(path)
+
+        file_type = '.' + pull_project.from_type.type.lower()
+        for file in session.nlst():
+
+            if file.lower().endswith(file_type):
+                r = StringIO()
+                # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
+                session.retrlines('RETR ' + file, r.write)
+
+                # convert from CSV to JSON
+                # store in ConvertedMessages
+                # Move file to used folder
+
+                print(r.getvalue())
+                original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue())
+
+
+def send_to_api(project, undelivered):
+    message_ids = []
+
+    host = project.send_to_api.host
+
+    headers = {'content-type': 'application/json'}
+
+    # //request.add_header('X-Hub-Store', settings.X_Hub_Store)
+    # request.add_header('X-Hub-Access-Token', settings.X_Hub_Access_Token)
+
+    for header in project.send_to_api.apiheader_set.all():
+        # headers.update({header.name: header.value})
+        headers[header.name] = header.value
+
+    for message in undelivered:
+
+        # json.loads(message.converted_message)
+        # shipments['shipments'] += json.loads(message.converted_message)
+        # message_ids.append(message.id)
+
+        try:
+            data = message.converted_message
+            response = requests.post(host, data, headers=headers)
+            response.raise_for_status()
+            message_ids.append(message.id)
+            logger.info('Message id %s delivered: %s' % (message.id, response.text))
+        except Exception as e:
+            logger.error('Error delivering message id %s. Exception Type: %s, Exception: %s' % (message.id, type(e), e))
+
+    return message_ids
+
+def send_to_ftp(project, undelivered):
+
+    message_ids = []
+
+    file_name = 'workfile-%s.csv' % time.strftime("%Y_%m_%d_%H_%M_%S")
+    with open(file_name, 'w') as f:
+        for message in undelivered:
+            f.write(message.converted_message)
+            message_ids.append(message.id)
+
+
+    # upload file to share
+    with open(file_name, 'rb') as upload_file:
+        session = ftplib.FTP(project.send_to_ftp.host, project.send_to_ftp.user, project.send_to_ftp.password)
+        session.storlines('STOR ' + file_name, upload_file)
+        session.quit()
+
+    return message_ids
+
 
 @shared_task
 def deliver_messages():
@@ -43,30 +130,25 @@ def deliver_messages():
         if span < timedelta(minutes=project.delivery_frequency):
             continue  # not enough time has passed
 
-        undelivered = ConvertedMessageQueue.objects.filter(delivered=False).order_by('created')
+        undelivered = ConvertedMessageQueue.objects.filter(delivered=False, project=project).order_by('created')
 
         if not undelivered:
             return
 
-        message_ids = []
+        try:
+            if project.send_to_ftp:
+                message_ids = send_to_ftp(project, undelivered)
+            else:
+                message_ids = send_to_api(project, undelivered)
 
-        file_name = 'workfile-%s.csv' % time.strftime("%Y_%m_%d_%H_%M_%S")
+            ConvertedMessageQueue.objects.filter(id__in=message_ids).update(delivered=True)
+            last_delivery.save()  # update last_delivered time
+        except Exception as e:
+            logger.error('Error delivering messages for project id %s. Exception Type: %s, Exception: %s' % (project.id, type(e), e))
+            if created:
+                last_delivery.delete()
 
-        if project.send_to_ftp:
-            with open(file_name, 'w') as f:
-                for message in undelivered:
-                    f.write(message.converted_message)
-                    message_ids.append(message.id)
 
-
-            # upload file to share
-            with open(file_name, 'rb') as upload_file:
-                session = ftplib.FTP(project.send_to_ftp.host, project.send_to_ftp.user, project.send_to_ftp.password)
-                session.storlines('STOR ' + file_name, upload_file)
-                session.quit()
-                ConvertedMessageQueue.objects.filter(id__in=message_ids).update(delivered=True)
-        else:
-            raise NotImplementedError('Only Send to FTP is currently implemented')
 
 
 

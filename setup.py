@@ -67,6 +67,7 @@ setup(
         'django-celery>=3.1.10',
         'djangorestframework>=2.3.14',
         'Markdown>=2.4.1',
+        'requests>=2.3.0',
     ],
 
     # If there are data files included in your packages that need to be

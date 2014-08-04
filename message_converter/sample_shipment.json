@@ -1,0 +1,44 @@
+{
+  "shipments": [
+    {
+      "id": "12836493888",
+      "order_id": "R154085346",
+      "email": "spree@example.com",
+      "cost": 5,
+      "status": "ready",
+      "stock_location": "default",
+      "shipping_method": "UPS Ground (USD)",
+      "tracking": "12345678",
+      "shipped_at": "2014-02-03T17:33:55.343Z",
+      "shipping_address": {
+        "firstname": "Joe",
+        "lastname": "Smith",
+        "address1": "1234 Awesome Street",
+        "address2": "",
+        "zipcode": "90210",
+        "city": "Hollywood",
+        "state": "California",
+        "country": "US",
+        "phone": "0000000000"
+      },
+      "items": [
+        {
+          "name": "Spree T-Shirt",
+          "product_id": "SPREE-T-SHIRT",
+          "quantity": 1,
+          "price": 30,
+          "options": {}
+        }
+      ]
+    }
+  ]
+}
+
+
+//create_new_dict_in_last_list "shipments"
+//each_time_first_record_is "HDR"
+//map ["shipping_address.first_name", null, "id"]
+//
+//create_new_dict_in_last_list "shipments.items"
+//each_time_first_record_is "DTL"
+//map ["name", "product_id", null, "quantity"]

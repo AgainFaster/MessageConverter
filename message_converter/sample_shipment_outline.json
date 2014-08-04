@@ -1,0 +1,35 @@
+{
+  "shipments": [
+    {
+      "id": "HDR.7", // DTL.7???
+      "order_id": "HDR.8",
+      "email": "HDR.23",
+      "cost": "HDR.101",
+      "status": "DTL.18",
+      "stock_location": "HDR.4",
+      "shipping_method": "HDR.32",
+      "tracking": "DTL.7",
+      "shipped_at": "HDR.10",
+      "shipping_address": {
+        "firstname": "HDR.22",
+        "lastname": "HDR.22",
+        "address1": "HDR.24",
+        "address2": "HDR.25",
+        "zipcode": "HDR.28",
+        "city": "HDR.26",
+        "state": "HDR.27",
+        "country": "HDR.29",
+        "phone": "HDR.30"
+      },
+      "items": [
+        {
+          "name": "DTL.13",
+          "product_id": "DTL.13",
+          "quantity": "DTL.23",
+          "price": "?",
+          "options": {}
+        }
+      ]
+    }
+  ]
+}

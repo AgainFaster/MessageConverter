@@ -1,6 +1,6 @@
 from django.contrib import admin
 from message_converter.models import ApiProject, PullProject, FtpAccessSetting, ApiAccessSetting, IncomingMessage, ConvertedMessageQueue, \
-    ApiToken
+    ApiToken, ApiHeader
 
 
 class ApiProjectAdmin(admin.ModelAdmin):
@@ -15,8 +15,12 @@ class FtpAccessSettingAdmin(admin.ModelAdmin):
     pass
 
 
+class ApiHeaderInline(admin.StackedInline):
+    model = ApiHeader
+
+
 class ApiAccessSettingAdmin(admin.ModelAdmin):
-    pass
+    inlines = [ApiHeaderInline,]
 
 
 class IncomingMessageAdmin(admin.ModelAdmin):
@@ -25,6 +29,7 @@ class IncomingMessageAdmin(admin.ModelAdmin):
 
 class ConvertedMessageQueueAdmin(admin.ModelAdmin):
     pass
+
 
 class ApiTokenAdmin(admin.ModelAdmin):
     pass

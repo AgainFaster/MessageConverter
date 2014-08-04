@@ -13,19 +13,27 @@ class MessageType(models.Model):
 
 
 class ApiAccessSetting(models.Model):
-    host = models.CharField(max_length=100, unique=True)
-    user = models.CharField(max_length=100, unique=True)
-    api_key = models.CharField(max_length=100, unique=True)
+    host = models.CharField(max_length=100)
 
     def __str__(self):
         return self.host
 
 
+class ApiHeader(models.Model):
+    name = models.CharField(max_length=100)
+    value = models.CharField(max_length=100)
+    setting = models.ForeignKey(ApiAccessSetting)
+
+    def __str__(self):
+        return "%s: %s" % (self.name, self.value)
+
+
 class FtpAccessSetting(models.Model):
-    host = models.CharField(max_length=100, unique=True)
-    user = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=100, unique=True)
-    path = models.TextField()
+    # name = models.CharField(max_length=100)
+    host = models.CharField(max_length=100)
+    user = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    path = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.host + self.path
@@ -90,10 +98,17 @@ class ConvertedMessageQueue(models.Model):
 
 class LastDelivery(models.Model):
     project = models.ForeignKey(Project, unique=True)
-    last_delivered = models.DateTimeField(auto_now_add=True)
+    last_delivered = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s - %s' % (self.project, self.last_delivered)
+
+class LastPull(models.Model):
+    pull_project = models.ForeignKey(PullProject, unique=True)
+    last_pulled = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '%s - %s' % (self.pull_project, self.last_pulled)
 
 class ApiToken(models.Model):
     class Meta:
