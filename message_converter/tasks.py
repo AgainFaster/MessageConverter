@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 # from rest_framework.request import Request
 import requests
 import json
+from message_converter.csv2json import Csv2Json
 from message_converter.models import ConvertedMessageQueue, Project, LastDelivery, PullProject, LastPull, \
     IncomingMessage
 
@@ -35,6 +36,12 @@ def pull_messages():
         # read file into memory?
         # Pull file from FTP
 
+        if not pull_project.pull_from_ftp:
+            raise NotImplementedError('PullProject only supports pull_from_ftp')
+
+        if pull_project.from_type != 'CSV':
+            raise NotImplementedError('PullProject only supports from_type CSV')
+
         last_pull, created = LastPull.objects.get_or_create(pull_project=pull_project)
 
         span = datetime.now() - last_pull.last_pulled
@@ -53,17 +60,32 @@ def pull_messages():
             if file.lower().endswith(file_type):
                 r = StringIO()
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
-                session.retrlines('RETR ' + file, r.write)
-
-                # convert from CSV to JSON
-                # store in ConvertedMessages
-                # Move file to used folder
+                session.retrlines('RETR ' + file, lambda line: r.write('%s\n' % line))
 
                 print(r.getvalue())
                 original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue())
+                r.close()
+
+                # convert from CSV to JSON
+                if pull_project.to_type.type == 'JSON':
+                    outline = pull_project.conversion_parameters
+                    csv2json = Csv2Json(outline)
+                    converted = csv2json.convert_to_json(original_message.message)
+                else:
+                    raise NotImplementedError('PullProject only supports the JSON to_type')
+
+                ConvertedMessageQueue.objects.create(original_message=original_message,
+                                                     converted_message=converted, project=pull_project)
+
+                # Move file to processed folder
+                processed_folder = 'processed'
+                if processed_folder not in session.nlst():
+                    session.mkd(processed_folder)
+
+                session.rename(file, processed_folder + '/' + file)
 
 
-def send_to_api(project, undelivered):
+def _send_to_api(project, undelivered):
     message_ids = []
 
     host = project.send_to_api.host
@@ -94,7 +116,8 @@ def send_to_api(project, undelivered):
 
     return message_ids
 
-def send_to_ftp(project, undelivered):
+
+def _send_to_ftp(project, undelivered):
 
     message_ids = []
 
@@ -137,9 +160,9 @@ def deliver_messages():
 
         try:
             if project.send_to_ftp:
-                message_ids = send_to_ftp(project, undelivered)
+                message_ids = _send_to_ftp(project, undelivered)
             else:
-                message_ids = send_to_api(project, undelivered)
+                message_ids = _send_to_api(project, undelivered)
 
             ConvertedMessageQueue.objects.filter(id__in=message_ids).update(delivered=True)
             last_delivery.save()  # update last_delivered time
