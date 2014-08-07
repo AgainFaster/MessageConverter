@@ -60,6 +60,7 @@ def pull_messages():
             path = pull_project.pull_from_ftp.path.strip()
             session.cwd(path)
 
+        pull_count = 0
         file_type = '.' + pull_project.from_type.type.lower()
         for file in session.nlst():
 
@@ -92,7 +93,10 @@ def pull_messages():
 
                     session.rename(file, processed_path + '/' + file)
 
+                pull_count += 1
+
         last_pull.save()
+        logger.info("%s messages pulled for %s project." % (len(pull_count), pull_project))
 
 
 def _send_to_api(project, undelivered):
@@ -174,11 +178,10 @@ def deliver_messages():
             logger.info("Not ready to deliver messages for %s project yet." % project)
             continue  # not enough time has passed
 
-        logger.info("Delivering messages for %s project." % project)
-
         undelivered = ConvertedMessageQueue.objects.filter(delivered=False, project=project).order_by('created')
 
         if not undelivered:
+            logger.info("No messages to deliver for %s project." % project)
             return
 
         try:
@@ -189,6 +192,8 @@ def deliver_messages():
 
             ConvertedMessageQueue.objects.filter(id__in=message_ids).update(delivered=True)
             last_delivery.save()  # update last_delivered time
+            logger.info("%s messages delivered for %s project." % (len(message_ids), project))
+
         except Exception as e:
             logger.error('Error delivering messages for project id %s. Exception Type: %s, Exception: %s' % (project.id, type(e), e))
             if created:
