@@ -139,7 +139,7 @@ def _send_to_ftp(project, undelivered):
         session = ftplib.FTP(project.send_to_ftp.host, project.send_to_ftp.user, project.send_to_ftp.password)
         if project.send_to_ftp.path:
             path = project.send_to_ftp.path.strip()
-            project.cwd(path)
+            session.cwd(path)
         session.storlines('STOR ' + file_name, upload_file)
         session.quit()
 
