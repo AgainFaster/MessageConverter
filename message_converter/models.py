@@ -34,6 +34,7 @@ class FtpAccessSetting(models.Model):
     user = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     path = models.TextField(blank=True, null=True)
+    processed_path = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.host + self.path

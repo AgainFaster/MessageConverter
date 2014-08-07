@@ -78,12 +78,16 @@ def pull_messages():
                 ConvertedMessageQueue.objects.create(original_message=original_message,
                                                      converted_message=converted, project=pull_project)
 
-                # Move file to processed folder
-                processed_folder = 'processed'
-                if processed_folder not in session.nlst():
-                    session.mkd(processed_folder)
+                if pull_project.pull_from_ftp.processed_path:
+                    # Move file to processed folder
+                    processed_path = pull_project.pull_from_ftp.processed_path.strip()
 
-                session.rename(file, processed_folder + '/' + file)
+                    if processed_path not in session.nlst():
+                        session.mkd(processed_path)
+
+                    session.rename(file, processed_path + '/' + file)
+
+        last_pull.save()
 
 
 def _send_to_api(project, undelivered):
