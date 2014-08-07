@@ -49,7 +49,10 @@ def pull_messages():
 
         span = datetime.now() - last_pull.last_pulled
         if span < timedelta(minutes=pull_project.delivery_frequency):
+            logger.info("Not ready to pull messages for %s project yet." % pull_project)
             continue  # not enough time has passed
+
+        logger.info("Pulling messages for %s project." % pull_project)
 
         session = ftplib.FTP(pull_project.pull_from_ftp.host, pull_project.pull_from_ftp.user, pull_project.pull_from_ftp.password)
 
@@ -168,7 +171,10 @@ def deliver_messages():
 
         span = datetime.now() - last_delivery.last_delivered
         if span < timedelta(minutes=project.delivery_frequency):
+            logger.info("Not ready to deliver messages for %s project yet." % project)
             continue  # not enough time has passed
+
+        logger.info("Delivering messages for %s project." % project)
 
         undelivered = ConvertedMessageQueue.objects.filter(delivered=False, project=project).order_by('created')
 
