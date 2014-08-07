@@ -33,6 +33,8 @@ def pull_messages():
 
     """
 
+    logger.info("Running pull_messages task.")
+
     for pull_project in PullProject.objects.all():
         # read file into memory?
         # Pull file from FTP
@@ -157,6 +159,8 @@ def deliver_messages():
     This should be scheduled as a periodic task
 
     """
+
+    logger.info("Running deliver_messages task.")
 
     for project in Project.objects.all():
 
