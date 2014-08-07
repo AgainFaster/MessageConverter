@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import ftplib
 from io import StringIO
+import os
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -127,12 +128,20 @@ def _send_to_ftp(project, undelivered):
             f.write(message.converted_message)
             message_ids.append(message.id)
 
-
     # upload file to share
     with open(file_name, 'rb') as upload_file:
         session = ftplib.FTP(project.send_to_ftp.host, project.send_to_ftp.user, project.send_to_ftp.password)
+        if project.send_to_ftp.path:
+            path = project.send_to_ftp.path.strip()
+            project.cwd(path)
         session.storlines('STOR ' + file_name, upload_file)
         session.quit()
+
+    try:
+        # delete work file
+        os.remove(file_name)
+    except Exception as e:
+        logger.error('Could not remove work file: "%s". Exception Type: %s, Exception: %s' % (file_name, type(e), e))
 
     return message_ids
 
