@@ -96,7 +96,7 @@ def pull_messages():
                 pull_count += 1
 
         last_pull.save()
-        logger.info("%s messages pulled for %s project." % (len(pull_count), pull_project))
+        logger.info("%s messages files pulled for %s project." % (pull_count, pull_project))
 
 
 def _send_to_api(project, undelivered):
