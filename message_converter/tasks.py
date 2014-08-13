@@ -42,7 +42,7 @@ def pull_messages():
         if not pull_project.pull_from_ftp:
             raise NotImplementedError('PullProject only supports pull_from_ftp')
 
-        if pull_project.from_type != 'CSV':
+        if pull_project.from_type.type != 'CSV':
             raise NotImplementedError('PullProject only supports from_type CSV')
 
         last_pull, created = LastPull.objects.get_or_create(pull_project=pull_project)
