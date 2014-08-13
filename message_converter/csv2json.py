@@ -65,6 +65,7 @@ class Csv2Json(object):
                     data['shipments'].append(selected_shipment)
 
                 selected_shipment['items'].append({
+                    "id": row[18],
                     "name": row[12],
                     "product_id": row[12],
                     "quantity": row[22],
