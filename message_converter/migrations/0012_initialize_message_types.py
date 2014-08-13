@@ -11,8 +11,8 @@ class Migration(DataMigration):
         # Note: Don't use "from appname.models import ModelName". 
         # Use orm.ModelName to refer to models in this application,
         # and orm['appname.ModelName'] for models in other applications.
-        WOFSHIPMENT, created = orm.MessageType.objects.get_or_create(type_code='WOFORDER', name='WOF Order', format='JSON')
-        WOFORDER, created = orm.MessageType.objects.get_or_create(type_code='WOFSHIPMENT', name='WOF Shipment', format='JSON')
+        WOFORDER, created = orm.MessageType.objects.get_or_create(type_code='WOFORDER', name='WOF Order', format='JSON')
+        WOFSHIPMENT, created = orm.MessageType.objects.get_or_create(type_code='WOFSHIPMENT', name='WOF Shipment', format='JSON')
         EDI940, created = orm.MessageType.objects.get_or_create(type_code='EDI940', name='EDI 940 Warehouse Shipping Order', format='CSV')
         EDI945, created = orm.MessageType.objects.get_or_create(type_code='EDI945', name='EDI 945 Shipping Advice', format='CSV')
 
