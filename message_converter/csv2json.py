@@ -12,7 +12,7 @@ class Csv2Json(object):
     def __init__(self, outline):
         pass
 
-    def convert_to_json(self, csv):
+    def convert_edi_945_to_wof_shipment(self, csv):
 
         # Convert 945 x12 EDI CSV document to Shipment JSON that Wombat can understand
         data = {"shipments": []}

@@ -30,7 +30,7 @@ class ApiProjectView(APIView):
         if not request.DATA.get('request_id'):
             return self._response(request, 'Missing request_id.', False)
 
-        if project.from_type.type == 'JSON' and project.to_type.type == 'CSV':
+        if project.from_type.format == 'JSON' and project.to_type.format == 'CSV':
             original_message = IncomingMessage.objects.create(project=project,
                                                               message=request.POST.get('_content', json.dumps(request.DATA)))
 

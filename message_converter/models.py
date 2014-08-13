@@ -5,11 +5,13 @@ from django.conf import settings
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 class MessageType(models.Model):
-    type = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    type_code = models.CharField(max_length=100)
+    format = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.type
+        return '%s (%s)' % (self.name, self.format)
 
 
 class ApiAccessSetting(models.Model):

@@ -42,8 +42,11 @@ def pull_messages():
         if not pull_project.pull_from_ftp:
             raise NotImplementedError('PullProject only supports pull_from_ftp')
 
-        if pull_project.from_type.type != 'CSV':
-            raise NotImplementedError('PullProject only supports from_type CSV')
+        if pull_project.from_type.type_code != 'EDI945':
+            raise NotImplementedError('PullProject only supports EDI 945 Shipping Advice (CSV)')
+
+        if pull_project.to_type.type_code != 'WOFSHIPMENT':
+            raise NotImplementedError('PullProject only supports the WOF Shipment (JSON) to_type')
 
         last_pull, created = LastPull.objects.get_or_create(pull_project=pull_project)
 
@@ -61,7 +64,7 @@ def pull_messages():
             session.cwd(path)
 
         pull_count = 0
-        file_type = '.' + pull_project.from_type.type.lower()
+        file_type = '.' + pull_project.from_type.format.lower()
         for file in session.nlst():
 
             if file.lower().endswith(file_type):
@@ -74,12 +77,9 @@ def pull_messages():
                 r.close()
 
                 # convert from CSV to JSON
-                if pull_project.to_type.type == 'JSON':
-                    outline = pull_project.conversion_parameters
-                    csv2json = Csv2Json(outline)
-                    converted = csv2json.convert_to_json(original_message.message)
-                else:
-                    raise NotImplementedError('PullProject only supports the JSON to_type')
+                outline = pull_project.conversion_parameters
+                csv2json = Csv2Json(outline)
+                converted = csv2json.convert_edi_945_to_wof_shipment(original_message.message)
 
                 ConvertedMessageQueue.objects.create(original_message=original_message,
                                                      converted_message=converted, project=pull_project)
