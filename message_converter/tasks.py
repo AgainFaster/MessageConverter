@@ -135,8 +135,8 @@ def _send_to_ftp(project, undelivered):
 
     message_ids = []
 
-    file_name = 'workfile-%s.csv' % time.strftime("%Y_%m_%d_%H_%M_%S")
-    with open(file_name, 'w') as f:
+    file_name = 'workfile-%s.txt' % time.strftime("%Y_%m_%d_%H_%M_%S")
+    with open(file_name, 'w+', newline='\r\n') as f:
         for message in undelivered:
             f.write(message.converted_message)
             message_ids.append(message.id)

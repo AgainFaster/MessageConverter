@@ -107,7 +107,7 @@ class Json2Csv(object):
 
         output = io.StringIO()
 
-        writer = csv.DictWriter(output, self.key_map.keys())
+        writer = csv.DictWriter(output, self.key_map.keys(), delimiter='|')
         if write_header_row:
             writer.writeheader()
         writer.writerows(self.rows)
