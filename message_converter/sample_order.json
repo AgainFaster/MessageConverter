@@ -1,88 +1,93 @@
 {
   "order": {
-    "id": "R154085346750",
-    "status": "complete",
-    "channel": "spree",
-    "email": "spree@example.com",
-    "currency": "USD",
-    "placed_on": "2014-02-03T17:29:15.219Z",
-    "totals": {
-      "item": 200,
-      "adjustment": 20,
-      "tax": 10,
-      "shipping": 10,
-      "payment": 220,
-      "order": 220
-    },
-    "line_items": [
-      {
-        "product_id": "SPREE-T-SHIRT",
-        "name": "Spree T-Shirt",
-        "quantity": 2,
-        "price": 100,
-        "action": "U",
-        "customer_id": "ABC",
-        "order_id": "R154085346750"
+      "status": "Completed",
+      "line_items": [
+        {
+          "id": 150759,
+          "price": "0.00",
+          "product_id": "AFDP-BS-45-0090",
+          "name": "Again Faster Bumper Plates 45-lb (each) ",
+          "quantity": 2,
+          "unit_of_measure": "EA"
+        },
+        {
+          "id": 150758,
+          "price": "110.00",
+          "product_id": "AFDP-BP-45-0090",
+          "name": "Again Faster Bumper Plates 45-lb (Pair)",
+          "quantity": 1,
+          "unit_of_measure": "PR"
+        },
+        {
+          "id": 150757,
+          "price": "46.99",
+          "product_id": "AFDP-KB-16-0035",
+          "name": "Again Faster Kettlebell 16-kg",
+          "quantity": 1,
+          "unit_of_measure": "EA"
+        },
+        {
+          "id": 150756,
+          "price": "59.99",
+          "product_id": "AFDP-KB-24-0053",
+          "name": "Again Faster Kettlebell 24-kg",
+          "quantity": 1,
+          "unit_of_measure": "EA"
+        }
+      ],
+      "billing_address": {
+        "city": "Boston",
+        "firstname": "Kai",
+        "lastname": "Segrud",
+        "address2": "",
+        "zipcode": "02127",
+        "state": "MA",
+        "address1": "38 Vinton Street #1",
+        "country": "US",
+        "phone_number": "605-212-9808"
       },
-      {
-        "product_id": "WOMBAT-T-SHIRT",
-        "name": "Wombat T-Shirt",
-        "quantity": 3,
-        "price": 105.33,
-        "action": "U",
-        "customer_id": "ABC",
-        "order_id": "R154085346750"
-      }
-    ],
-    "adjustments": [
-      {
-        "name": "Tax",
-        "value": 10
+      "placed_on": "2014-08-06T16-37-14",
+      "adjustments": [
+        {
+          "name": "Shipping",
+          "value": "125.84"
+        },
+        {
+          "name": "Discount",
+          "value": "-20.85"
+        }
+      ],
+      "shipping": "shipping_method",
+      "totals": {
+        "item": "216.98",
+        "adjustment": [
+          "104.99"
+        ],
+        "order": "321.97",
+        "shipping": "125.84"
       },
-      {
-        "name": "Shipping",
-        "value": 5
+      "currency": "USD",
+      "payments": [
+        {
+          "payment_method": "Credit Card"
+        }
+      ],
+      "shipping_address": {
+        "city": "Lancaster",
+        "firstname": "Josiah",
+        "lastname": "Reams",
+        "address2": "Apt 2",
+        "zipcode": "93536",
+        "state": "CA",
+        "address1": "44004 Engle Way",
+        "country": "US",
+        "phone_number": "605-431-2402"
       },
-      {
-        "name": "Shipping",
-        "value": 5
-      }
-    ],
-    "shipping_address": {
-      "firstname": "Joe",
-      "lastname": "Smith",
-      "address1": "1234 Awesome Street",
-      "address2": "",
-      "zipcode": "90210",
-      "city": "Hollywood",
-      "state": "California",
-      "country": "US",
-      "phone": "0000000000",
-      "name": "Joe Smith"
-    },
-    "billing_address": {
-      "firstname": "Joe",
-      "lastname": "Smith",
-      "address1": "1234 Awesome Street",
-      "address2": "",
-      "zipcode": "90210",
-      "city": "Hollywood",
-      "state": "California",
-      "country": "US",
-      "phone": "0000000000",
-      "name": "Joe Smith"
-    },
-    "payments": [
-      {
-        "number": 63,
-        "status": "completed",
-        "amount": 220,
-        "payment_method": "Credit Card"
-      }
-    ],
-    "action": "U",
-    "customer_id": "ABC"
-  },
-  "parameters": {},
-  "request_id": "53cecd59736d616f92100000"
+      "id": 59317,
+      "email": "kai.segrud@againfaster.com",
+      "channel": "US",
+      "shipping_method": "Freight",
+      "carrier_code": "RNLO",
+      "service_code": ""
+    }
 }
