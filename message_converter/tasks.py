@@ -182,7 +182,7 @@ def deliver_messages():
 
         if not undelivered:
             logger.info("No messages to deliver for %s project." % project)
-            return
+            continue
 
         try:
             if project.send_to_ftp:

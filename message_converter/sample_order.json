@@ -88,6 +88,7 @@
       "channel": "US",
       "shipping_method": "Freight",
       "carrier_code": "RNLO",
-      "service_code": ""
+      "service_code": "",
+      "requested_ship_date": "20140827"
     }
 }
