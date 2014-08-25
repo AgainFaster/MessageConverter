@@ -3,11 +3,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import json
+import logging
 
 # from MyProject.MyApp import CalcClass
 from message_converter.json2csv import Json2Csv
 from message_converter.models import IncomingMessage, ConvertedMessageQueue, ApiProject
 
+logging.basicConfig(level=logging.DEBUG)
 
 class ApiProjectView(APIView):
 
@@ -51,6 +53,11 @@ class ApiProjectView(APIView):
             for outline in parameters['outlines']:
                 json2csv = Json2Csv(outline)
                 json2csv.process(request.DATA)
+
+                if not json2csv.rows or len(json2csv.rows) == 0:
+                    logging.info("No data to convert for one or more outlines.")
+                    return self._response(request, 'No data to convert.')
+
                 csv_str += json2csv.write_string(write_header_row=False)
 
             print(csv_str)
