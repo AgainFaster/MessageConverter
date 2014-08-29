@@ -67,7 +67,7 @@ def pull_messages():
         file_type = '.' + pull_project.from_type.format.lower()
         for file in session.nlst():
 
-            if file.lower().endswith(file_type):
+            if file.lower().endswith(file_type) or file.lower().endswith('.txt'):
                 r = StringIO()
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
                 session.retrlines('RETR ' + file, lambda line: r.write('%s\n' % line))

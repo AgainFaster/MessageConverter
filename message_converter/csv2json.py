@@ -2,6 +2,7 @@
 import json
 import logging
 from io import StringIO
+import csv
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -12,14 +13,14 @@ class Csv2Json(object):
     def __init__(self, outline):
         pass
 
-    def convert_edi_945_to_wof_shipment(self, csv):
+    def convert_edi_945_to_wof_shipment(self, csv_str):
 
         # Convert 945 x12 EDI CSV document to Shipment JSON that Wombat can understand
         data = {"shipments": []}
 
-        s = StringIO(csv)
+        s = StringIO(csv_str)
 
-        reader = csv.reader(s)
+        reader = csv.reader(s, delimiter='|')
         header_row = None
 
         for row in reader:
@@ -65,11 +66,11 @@ class Csv2Json(object):
                     data['shipments'].append(selected_shipment)
 
                 selected_shipment['items'].append({
-                    "id": row[18],
+                    "id": row[4],
                     "name": row[12],
                     "product_id": row[12],
                     "quantity": row[22],
-                    "price": "?",
+                    "price": "",
                     "options": {}
                 })
 
