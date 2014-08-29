@@ -26,9 +26,9 @@ class Csv2Json(object):
         for row in reader:
             if row[0] == 'HDR':
                 header_row = row
-            elif row[0] == 'DTL':
+            elif row[0] == 'CNT':
                 selected_shipment = None
-                tracking_number = row[6]
+                tracking_number = row[8]
                 for shipment in data['shipments']:
                     if shipment['tracking'] == tracking_number:
                         selected_shipment = shipment
@@ -43,9 +43,6 @@ class Csv2Json(object):
                         "id": tracking_number,
                         "order_id": header_row[7],
                           "email": header_row[22],
-                          "cost": header_row[100],
-                          "status": header_row[17],
-                          "stock_location": header_row[3],
                           "shipping_method": header_row[31],
                           "tracking": tracking_number,
                           "shipped_at": header_row[9],
@@ -66,12 +63,9 @@ class Csv2Json(object):
                     data['shipments'].append(selected_shipment)
 
                 selected_shipment['items'].append({
-                    "id": row[4],
-                    "name": row[12],
-                    "product_id": row[12],
-                    "quantity": row[22],
-                    "price": "",
-                    "options": {}
+                    "id": row[12],
+                    "product_id": row[13],
+                    "quantity": row[19],
                 })
 
 
