@@ -60,8 +60,10 @@ def pull_messages():
         session = ftplib.FTP(pull_project.pull_from_ftp.host, pull_project.pull_from_ftp.user, pull_project.pull_from_ftp.password)
 
         if pull_project.pull_from_ftp.path:
-            path = pull_project.pull_from_ftp.path.strip()
-            session.cwd(path)
+            working_path = pull_project.pull_from_ftp.path.strip()
+            session.cwd(working_path)
+        else:
+            working_path = session.pwd()
 
         pull_count = 0
         file_type = '.' + pull_project.from_type.format.lower()
@@ -94,7 +96,8 @@ def pull_messages():
                     except ftplib.error_perm as e:
                         if str(e) == '550 Failed to change directory.':
                             session.mkd(processed_path)
-
+                    
+                    session.cwd(working_path)
                     session.rename(file, processed_path + '/' + file)
 
                 pull_count += 1
