@@ -85,11 +85,15 @@ def pull_messages():
                                                      converted_message=converted, project=pull_project)
 
                 if pull_project.pull_from_ftp.processed_path:
+
                     # Move file to processed folder
                     processed_path = pull_project.pull_from_ftp.processed_path.strip()
 
-                    if processed_path not in session.nlst():
-                        session.mkd(processed_path)
+                    try:
+                        session.cwd(processed_path)
+                    except ftplib.error_perm as e:
+                        if str(e) == '550 Failed to change directory.':
+                            session.mkd(processed_path)
 
                     session.rename(file, processed_path + '/' + file)
 
