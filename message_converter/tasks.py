@@ -35,18 +35,18 @@ def pull_messages():
 
     logger.info("Running pull_messages task.")
 
-    for pull_project in PullProject.objects.all():
+    for pull_project in PullProject.objects.filter(enabled=True):
         # read file into memory?
         # Pull file from FTP
 
         if not pull_project.pull_from_ftp:
             raise NotImplementedError('PullProject only supports pull_from_ftp')
 
-        if pull_project.from_type.type_code != 'EDI945':
-            raise NotImplementedError('PullProject only supports EDI 945 Shipping Advice (CSV)')
+        if pull_project.from_type.format != 'CSV':
+            raise NotImplementedError('PullProject only supports CSV from_type')
 
-        if pull_project.to_type.type_code != 'WOFSHIPMENT':
-            raise NotImplementedError('PullProject only supports the WOF Shipment (JSON) to_type')
+        if pull_project.to_type.format != 'JSON':
+            raise NotImplementedError('PullProject only supports JSON to_type')
 
         last_pull, created = LastPull.objects.get_or_create(pull_project=pull_project)
 
@@ -74,14 +74,20 @@ def pull_messages():
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
                 session.retrlines('RETR ' + file, lambda line: r.write('%s\n' % line))
 
-                print(r.getvalue())
                 original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue())
                 r.close()
 
                 # convert from CSV to JSON
                 outline = pull_project.conversion_parameters
+                if outline:
+                    outline = json.loads(outline)
+
                 csv2json = Csv2Json(outline)
-                converted = csv2json.convert_edi_945_to_wof_shipment(original_message.message)
+
+                if pull_project.from_type.type_code == 'EDI945':
+                    converted = csv2json.convert_edi_945_to_wof_shipment(original_message.message)
+                else:
+                    converted = csv2json.convert(original_message.message)
 
                 ConvertedMessageQueue.objects.create(original_message=original_message,
                                                      converted_message=converted, project=pull_project)
@@ -176,7 +182,7 @@ def deliver_messages():
 
     logger.info("Running deliver_messages task.")
 
-    for project in Project.objects.all():
+    for project in Project.objects.filter(enabled=True):
 
         last_delivery, created = LastDelivery.objects.get_or_create(project=project)
 

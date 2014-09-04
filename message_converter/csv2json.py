@@ -11,7 +11,29 @@ class Csv2Json(object):
     """Process a CSV string to a JSON string"""
 
     def __init__(self, outline):
-        pass
+        self.outline = outline
+
+    def convert(self, csv_str):
+        collection_attribute = self.outline['collection']
+
+        collection = {collection_attribute: []}
+        data = collection[collection_attribute]
+
+        s = StringIO(csv_str)
+        reader = csv.reader(s, delimiter=',')
+
+        attribute_names = self.outline['outline']
+
+        for row in reader:
+            row_data = {}
+            for i in range(len(row)):
+                if i < len(attribute_names):
+                    row_data.update({attribute_names[i]: row[i]})
+            data.append(row_data)
+
+        s.close()
+        return json.dumps(collection)
+
 
     def convert_edi_945_to_wof_shipment(self, csv_str):
 

@@ -1,0 +1,4 @@
+{
+    "collection": "orderstatus",
+     "outline": ["id", "status"]
+}

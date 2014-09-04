@@ -45,6 +45,7 @@ class FtpAccessSetting(models.Model):
 class Project(models.Model):
     name = models.CharField(max_length=100, unique=True, validators=[RegexValidator('^[\w-]+$', u'Enter only alphanumeric, dash, or underscore.', 'invalid')])
     description = models.TextField(blank=True, null=True)
+    enabled = models.BooleanField(default=True)
 
     from_type = models.ForeignKey(MessageType, related_name="from_type_projects")
     to_type = models.ForeignKey(MessageType, related_name="to_type_projects")

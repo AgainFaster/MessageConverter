@@ -29,6 +29,9 @@ class ApiProjectView(APIView):
         except ApiProject.DoesNotExist:
             return self._response(request, 'Project name does not exist.', False)
 
+        if not project.enabled:
+            return self._response(request, 'Project is disabled.', False)
+
         if not request.DATA.get('request_id'):
             return self._response(request, 'Missing request_id.', False)
 
@@ -59,8 +62,6 @@ class ApiProjectView(APIView):
                     return self._response(request, 'No data to convert.')
 
                 csv_str += json2csv.write_string(write_header_row=False)
-
-            print(csv_str)
 
             ConvertedMessageQueue.objects.create(original_message=original_message,
                                                  converted_message=csv_str, project=project)
