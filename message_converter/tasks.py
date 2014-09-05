@@ -70,6 +70,9 @@ def pull_messages():
         for file in session.nlst():
 
             if file.lower().endswith(file_type) or file.lower().endswith('.txt'):
+
+                logger.info("Pulling message file: %s" % file)
+
                 r = StringIO()
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
                 session.retrlines('RETR ' + file, lambda line: r.write('%s\n' % line))
@@ -92,7 +95,12 @@ def pull_messages():
                 ConvertedMessageQueue.objects.create(original_message=original_message,
                                                      converted_message=converted, project=pull_project)
 
-                if pull_project.pull_from_ftp.processed_path:
+                logger.info("Finished converting message file: %s" % file)
+
+                if pull_project.pull_from_ftp.delete_processed:
+                    session.delete(file)
+                    logger.info("Deleted message file: %s" % file)
+                elif pull_project.pull_from_ftp.processed_path:
 
                     # Move file to processed folder
                     processed_path = pull_project.pull_from_ftp.processed_path.strip()
@@ -104,7 +112,9 @@ def pull_messages():
                             session.mkd(processed_path)
                     
                     session.cwd(working_path)
-                    session.rename(file, processed_path + '/' + file)
+                    processed_file = processed_path + '/' + file
+                    session.rename(file, processed_file)
+                    logger.info("Moved message file to processed path: %s" % processed_file)
 
                 pull_count += 1
 

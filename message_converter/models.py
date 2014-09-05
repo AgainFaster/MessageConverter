@@ -36,7 +36,8 @@ class FtpAccessSetting(models.Model):
     user = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     path = models.TextField(blank=True, null=True)
-    processed_path = models.TextField(blank=True, null=True)
+    processed_path = models.TextField(blank=True, null=True, help_text="This is the path where files will be moved to after they are processed. It will be ignored if delete_processed=True.")
+    delete_processed = models.BooleanField(default=False, help_text="This will delete files after they are processed rather than moving them to the processed_path.")
 
     def __str__(self):
         return self.host + self.path
