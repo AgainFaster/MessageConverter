@@ -59,6 +59,9 @@ class Project(models.Model):
     delivery_frequency = models.IntegerField(
         help_text="How often to deliver converted messages (in minutes). Use 0 for immediate. Minimum is the frequency of the deliver_messages periodic task.")
 
+    delivery_message_age = models.IntegerField(
+        help_text="How old a message has to be (in minutes) before it can be delivered. Use 0 for immediate.", default=0)
+
     def __str__(self):
         return self.name
 
@@ -84,6 +87,7 @@ class IncomingMessage(models.Model):
     message = models.TextField()
     project = models.ForeignKey(Project)
     created = models.DateTimeField(auto_now_add=True)
+    file_name = models.CharField(max_length=200, blank=True, null=True)
 
     def __str__(self):
         return '%s - %s' % (self.project, self.created)

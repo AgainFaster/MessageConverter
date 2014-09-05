@@ -77,7 +77,7 @@ def pull_messages():
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
                 session.retrlines('RETR ' + file, lambda line: r.write('%s\n' % line))
 
-                original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue())
+                original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue(), file_name=file)
                 r.close()
 
                 # convert from CSV to JSON
@@ -202,6 +202,12 @@ def deliver_messages():
             continue  # not enough time has passed
 
         undelivered = ConvertedMessageQueue.objects.filter(delivered=False, project=project).order_by('created')
+
+        if project.delivery_message_age:
+            newest_message_cutoff = datetime.now() - datetime.timedelta(project.delivery_message_age)
+            # exclude anything that's too new
+            undelivered = undelivered.exclude(created__gt=newest_message_cutoff)
+            logger.info("Excluding messages newer than %s (%s minutes ago)" % (newest_message_cutoff, project.delivery_message_age))
 
         if not undelivered:
             logger.info("No messages to deliver for %s project." % project)
