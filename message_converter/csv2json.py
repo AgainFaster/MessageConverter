@@ -51,6 +51,12 @@ class Csv2Json(object):
             elif row[0] == 'CNT':
                 selected_shipment = None
                 tracking_number = row[8]
+
+                if not tracking_number:
+                    tracking_number = header_row[42]  # PRO number
+                    if not tracking_number:
+                        tracking_number = (header_row[30] or '') + '-' + header_row[7]  # CarrierCode-OrderNumber (e.g. FXNL-12345)
+
                 for shipment in data['shipments']:
                     if shipment['tracking'] == tracking_number:
                         selected_shipment = shipment
