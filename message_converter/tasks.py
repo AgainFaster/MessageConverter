@@ -9,11 +9,13 @@ from celery.utils.log import get_task_logger
 import time
 from datetime import datetime, timedelta
 # from rest_framework.request import Request
+from django.conf import settings
 import requests
 import json
 from message_converter.csv2json import Csv2Json
 from message_converter.models import ConvertedMessageQueue, Project, LastDelivery, PullProject, LastPull, \
     IncomingMessage
+from raven import Client as ravenClient
 
 logger = get_task_logger(__name__)
 
@@ -24,6 +26,33 @@ def add(x, y):
 
     logger.info('The result: %s' % result)
     return result
+
+
+def reconvert_pulled_message(converted_message):
+    convert_pulled_message(converted_message.original_message, converted_message)
+
+def convert_pulled_message(original_message, converted_message=None):
+    pull_project = original_message.project
+
+    # convert from CSV to JSON
+    outline = pull_project.conversion_parameters
+    if outline:
+        outline = json.loads(outline)
+    csv2json = Csv2Json(outline)
+    if pull_project.from_type.type_code == 'EDI945':
+        converted = csv2json.convert_edi_945_to_wof_shipment(original_message.message)
+    else:
+        converted = csv2json.convert(original_message.message)
+
+    if converted_message:
+        converted_message.converted_message = converted
+        converted_message.save()
+        logger.info('Successfully reconverted message id: %s' % converted_message.id)
+    else:
+        converted_message = ConvertedMessageQueue.objects.create(original_message=original_message,
+                                             converted_message=converted, project=pull_project)
+        logger.info('Created message id: %s' % converted_message.id)
+
 
 @shared_task
 def pull_messages():
@@ -80,20 +109,7 @@ def pull_messages():
                 original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue(), file_name=file)
                 r.close()
 
-                # convert from CSV to JSON
-                outline = pull_project.conversion_parameters
-                if outline:
-                    outline = json.loads(outline)
-
-                csv2json = Csv2Json(outline)
-
-                if pull_project.from_type.type_code == 'EDI945':
-                    converted = csv2json.convert_edi_945_to_wof_shipment(original_message.message)
-                else:
-                    converted = csv2json.convert(original_message.message)
-
-                ConvertedMessageQueue.objects.create(original_message=original_message,
-                                                     converted_message=converted, project=pull_project)
+                convert_pulled_message(original_message)
 
                 logger.info("Finished converting message file: %s" % file)
 
@@ -150,6 +166,16 @@ def _send_to_api(project, undelivered):
             logger.info('Message id %s delivered: %s' % (message.id, response.text))
         except Exception as e:
             logger.error('Error delivering message id %s. Exception Type: %s, Exception: %s' % (message.id, type(e), e))
+            ravenClient(dsn=getattr(settings, 'SENTRY_DSN', '')).captureException(extra={"message_id": message.id})
+
+            if PullProject.objects.filter(id=project.id).exists():
+                try:
+                    # try to reconvert in case there is a new outline, or code change
+                    logger.info('Reconverting message id: %s' % message.id)
+                    reconvert_pulled_message(message)
+                except:
+                    logger.error('Failed reconverting message id: %s' % message.id)
+
 
     return message_ids
 
