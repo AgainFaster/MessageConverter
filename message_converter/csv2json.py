@@ -70,6 +70,7 @@ class Csv2Json(object):
                         "order_id": header_row[7],
                         "email": header_row[22],
                         "carrier": header_row[30],
+                        "service": header_row[11],
                         "shipping_method": header_row[31],
                         "tracking": tracking_number,
                         "shipped_at": header_row[9],
