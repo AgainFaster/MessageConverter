@@ -98,6 +98,13 @@
             ]
         },
         {
+            "first_record": ["RECORD_TYPE", "NTE"],
+            "map": [
+                ["NOTE_TYPE", "order.bol"],
+                ["NOTE", "order.shipping_address.phone_number"]
+            ]
+        },
+        {
             "collection": "order.line_items",
             "first_record": ["record_type", "DTL"],
             "map": [

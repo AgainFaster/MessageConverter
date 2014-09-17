@@ -1,6 +1,8 @@
 {
+  "request_id": "12345",
   "order": {
       "status": "Completed",
+      "bol": "BOL",
       "line_items": [
         {
           "id": 150759,
