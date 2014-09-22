@@ -3,6 +3,7 @@
   "order": {
       "status": "Completed",
       "bol": "BOL",
+      "bol_note": "Customer Phone Number: 605-431-2402",
       "line_items": [
         {
           "id": 150759,
