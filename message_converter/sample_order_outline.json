@@ -98,10 +98,11 @@
             ]
         },
         {
+            "collection": "order.notes",
             "first_record": ["RECORD_TYPE", "NTE"],
             "map": [
-                ["NOTE_TYPE", "order.bol"],
-                ["NOTE", "order.bol_note"]
+                ["NOTE_TYPE", "note_type"],
+                ["NOTE", "note"]
             ]
         },
         {

@@ -2,8 +2,6 @@
   "request_id": "12345",
   "order": {
       "status": "Completed",
-      "bol": "BOL",
-      "bol_note": "Customer Phone Number: 605-431-2402",
       "line_items": [
         {
           "id": 150759,
@@ -50,6 +48,32 @@
         "phone_number": "605-212-9808"
       },
       "placed_on": "2014-08-06T16-37-14",
+      "notes": [
+        {
+          "note": "Ethical gluten-free skateboard, American Apparel try-hard pug twee. Tote bag High Life try-hard Bushwick cred, pop-up normcore beard pork belly polaroid. Umami Wes Anderson wayfarers raw denim, Odd Future church-key selfies disrupt actually",
+          "note_type": "BOL"
+        },
+        {
+          "note": "gastropub twee master cleanse tousled. +1 High Life photo booth roof party, selfies art party Pinterest shabby chic cliche flannel vinyl fanny pack. Art party Tonx Banksy biodiesel authentic. YOLO jean shorts High Life, next level paleo",
+          "note_type": "BOL"
+        },
+        {
+          "note": "fashion axe irony selvage flannel. Umami mixtape readymade actually keytar Williamsburg vegan bitters squid.    Blog readymade Bushwick kale chips photo booth. Pitchfork Williamsburg letterpress Bushwick gastropub, aesthetic chillwave Wes",
+          "note_type": "BOL"
+        },
+        {
+          "note": "Anderson you probably haven't heard of them hella. Viral tousled brunch, Banksy locavore Neutra Godard deep v you probably haven't heard of them cliche cray hoodie before they sold out. Aesthetic cornhole fanny pack, dreamcatcher actually",
+          "note_type": "BOL"
+        },
+        {
+          "note": "lomo PBR chillwave Helvetica next level sustainable hoodie distillery. Cliche selfies butcher, brunch single-origin coffee plaid art party sartorial kogi DIY semiotics High Life authentic meggings flexitarian. Keytar aesthetic hashtag",
+          "note_type": "BOL"
+        },
+        {
+          "note": "Portland, biodiesel selfies try-hard mixtape tattooed PBR Etsy small batch. Actually typewriter Thundercats, flannel stumptown 3 wolf moon farm-to-table.",
+          "note_type": "BOL"
+        }
+      ],
       "adjustments": [
         {
           "name": "Shipping",
