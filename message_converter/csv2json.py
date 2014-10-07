@@ -22,10 +22,20 @@ class Csv2Json(object):
         s = StringIO(csv_str)
         reader = csv.reader(s, delimiter=',')
 
-        attribute_names = self.outline['outline']
+        row_outline = self.outline['outline']
 
         for row in reader:
+            if not row:
+                continue
+
             row_data = {}
+            attribute_names = row_outline
+
+            if isinstance(row_outline, dict):
+                attribute_names = attribute_names.get(row[0].strip())
+                if not attribute_names:
+                    continue
+
             for i in range(len(row)):
                 if i < len(attribute_names):
                     row_data.update({attribute_names[i]: row[i]})
