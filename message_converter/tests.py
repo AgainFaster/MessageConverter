@@ -1,10 +1,12 @@
-import unittest
+from io import StringIO
+from django.test import TestCase
 import json
-from json2csv import Json2Csv
-from csv2json import Csv2Json
+from .json2csv import Json2Csv
+from .csv2json import Csv2Json
+from .tasks import get_messages
 
 
-class TestJson2Csv(unittest.TestCase):
+class TestJson2Csv(TestCase):
 
     def test_init(self):
         outline = {'map': [['some_header', 'some_key']]}
@@ -111,7 +113,7 @@ class TestJson2Csv(unittest.TestCase):
         pass
 
 
-class TestCsv2Json(unittest.TestCase):
+class TestCsv2Json(TestCase):
     def test_dict_outline(self):
         outline = {
             "collection": "inventory",
@@ -163,3 +165,25 @@ R,[Item SKU],[total quantity],[date]"""
 
         self.assertEqual(data['orderstatus'][0].get('id'), '12345')
         self.assertEqual(data['orderstatus'][0].get('status'), '6')
+
+class TestTasks(TestCase):
+    def test_get_messages(self):
+        r = StringIO('line0\nline1\nline2\nline3\nline4\n')
+
+        # test without lines_per_message
+        messages = get_messages(r)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0], r.getvalue())
+
+        # test lines_per_message greater than actual number of lines
+        messages = get_messages(r, 100)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0], r.getvalue())
+
+        # test lines_per_message less than actual number of lines, and not dividing evenly
+        messages = get_messages(r, 2)
+        self.assertEqual(len(messages), 3)
+        self.assertEqual(messages[0], 'line0\nline1\n')
+        self.assertEqual(messages[1], 'line2\nline3\n')
+        self.assertEqual(messages[2], 'line4\n')
+

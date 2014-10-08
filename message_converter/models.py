@@ -79,6 +79,9 @@ class PullProject(Project):
     pull_frequency = models.IntegerField(
         help_text="How often to pull new messages (in minutes). Minimum is the frequency of the pull_messages periodic task.")
 
+    file_lines_per_message = models.IntegerField(
+        help_text="If a file has more lines than this number, it will be split into multiple messages each with up to this number of lines. Use 0 for unlimited.", default=0)
+
     def __str__(self):
         return self.name
 

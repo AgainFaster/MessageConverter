@@ -54,6 +54,28 @@ def convert_pulled_message(original_message, converted_message=None):
         logger.info('Created message id: %s' % converted_message.id)
 
 
+def get_messages(r, lines_per_message=None):
+    if not lines_per_message:
+        messages = [r.getvalue()]
+    else:
+        messages = []
+        r.seek(0)
+        all_lines = r.readlines()
+
+        first_line = 0
+        last_line = lines_per_message
+
+        while True:
+            message = ''.join(all_lines[first_line:last_line])
+            if message:
+                messages.append(message)
+                first_line += lines_per_message
+                last_line += lines_per_message
+            else:
+                break
+    return messages
+
+
 @shared_task
 def pull_messages():
     """
@@ -98,6 +120,7 @@ def pull_messages():
         file_type = '.' + pull_project.from_type.format.lower()
         for file in session.nlst():
 
+            # TODO, add pattern matching
             if file.lower().endswith(file_type) or file.lower().endswith('.txt'):
 
                 logger.info("Pulling message file: %s" % file)
@@ -105,11 +128,15 @@ def pull_messages():
                 r = StringIO()
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
                 session.retrlines('RETR ' + file, lambda line: r.write('%s\n' % line))
-
-                original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue(), file_name=file)
+                messages = get_messages(r, pull_project.file_lines_per_message)
                 r.close()
 
-                convert_pulled_message(original_message)
+                message_counter = 1
+                for message in messages:
+                    logger.info("Converting part %s of %s from %s" % (message_counter, len(messages), file))
+                    original_message = IncomingMessage.objects.create(project=pull_project, message=message, file_name=file)
+                    convert_pulled_message(original_message)
+                    message_counter += 1
 
                 logger.info("Finished converting message file: %s" % file)
 
