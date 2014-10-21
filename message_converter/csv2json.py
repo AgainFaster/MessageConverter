@@ -12,38 +12,70 @@ class Csv2Json(object):
 
     def __init__(self, outline):
         self.outline = outline
+        self._row_dict = {}
 
-    def convert(self, csv_str):
-        collection_attribute = self.outline['collection']
+    def _update_row_dict(self, row, prefix):
 
+        if not prefix:
+            self._row_dict = {}
+        else:
+            # clear anything that starts with the prefix, in case there's not the same number of rows
+            for key in self._row_dict:
+                if key.startswith('%s.' % prefix):
+                    self._row_dict[key] = None
+
+        for i in range(len(row)):
+            key = str(i)
+            if prefix is not None:
+                key = '%s.%s' % (prefix, key)
+
+            self._row_dict[key] = row[i]
+
+
+    def _get_collection(self, buffer, reader, outline, stop_at_type=None):
+        collection_attribute = outline.get('collection')
         collection = {collection_attribute: []}
         data = collection[collection_attribute]
 
-        s = StringIO(csv_str)
-        reader = csv.reader(s, delimiter=',')
-
-        row_outline = self.outline['outline']
+        last_position = buffer.tell()
 
         for row in reader:
             if not row:
                 continue
 
-            row_data = {}
-            attribute_names = row_outline
+            if stop_at_type and row[0] == stop_at_type:
+                buffer.seek(last_position)
+                break
 
-            if isinstance(row_outline, dict):
-                attribute_names = attribute_names.get(row[0].strip())
-                if not attribute_names:
-                    continue
+            row_outline = outline.get('outline')
 
-            for i in range(len(row)):
-                if i < len(attribute_names):
-                    row_data.update({attribute_names[i]: row[i]})
-            data.append(row_data)
+            outline_per_type = outline.get('outline_per_type')
+            if not outline_per_type or (outline_per_type and row[0] == outline_per_type):
+                row_data = {}
+
+                self._update_row_dict(row, outline_per_type)
+
+                for key in row_outline:
+                    if not (key == 'outline' and isinstance(row_outline[key], dict)):
+                        row_data[key] = self._row_dict.get(str(row_outline[key]))
+                    else:
+                        row_data.update(self._get_collection(buffer, reader, row_outline[key], outline_per_type))
+
+                data.append(row_data)
+
+            last_position = buffer.tell()
+
+        return collection
+
+    def convert(self, csv_str):
+
+        s = StringIO(csv_str)
+        reader = csv.reader(s, delimiter=',')
+
+        collection = self._get_collection(s, reader, self.outline)
 
         s.close()
         return json.dumps(collection)
-
 
     def convert_edi_945_to_wof_shipment(self, csv_str):
 

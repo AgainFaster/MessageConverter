@@ -114,76 +114,158 @@ class TestJson2Csv(TestCase):
 
 
 class TestCsv2Json(TestCase):
-    def test_dict_outline(self):
+
+    def test_prefixed_outline(self):
+
         outline = {
             "collection": "inventory",
-            "outline": {
-                "I": ["type", "id", "total_quantity", "committed_quantity", "entered_quantity"],
-                "R": ["type", "id", "receipt_total_quantity", "receipt_scheduled_date"]
-            }
+            "outline_per_type": "I",
+            "outline":
+                {
+                    "type": "I.0",
+                     "id": "I.1",
+                     "total_quantity": "I.2",
+                     "committed_quantity": "I.3",
+                     "entered_quantity": "I.4",
+                     "outline": {
+                         "collection": "receipts",
+                         "outline_per_type": "R",
+                         "outline": {
+                             "reference": "R.4",
+                             "type": "R.0",
+                             "sku": "R.1",
+                             "i_sku": "I.1",
+                             "receipt_total_quantity": "R.2",
+                             "receipt_scheduled_date": "R.3"
+                         }
+                     }
+                }
         }
 
         csv2json = Csv2Json(outline)
 
-        csv_str = """I,[Item SKU],[total quantity],[committed quantity],[entered quantity]
-R,[Item SKU],[total quantity],[date]"""
+        csv_str = """I,[I0 SKU],[I0 total quantity],[I0 committed quantity],[I0 entered quantity]
+R,[I0 R0 SKU],[I0 R0 total quantity],[I0 R0 date],[I0 R0 Reference]
+R,[I0 R1 SKU],[I0 R1 total quantity],[I0 R1 date],[I0 R1 Reference]
+I,[I1 SKU],[I1 total quantity],[I1 committed quantity],[I1 entered quantity]
+R,[I1 R0 SKU],[I1 R0 total quantity],[I1 R0 date],[I1 R0 Reference]
+R,[I1 R1 SKU],,[I1 R1 date]"""
 
         json_data = csv2json.convert(csv_str)
 
         data = json.loads(json_data)
+
         self.assertTrue('inventory' in data)
         self.assertTrue(isinstance(data['inventory'], list))
         self.assertEqual(len(data['inventory']), 2)
 
         self.assertEqual(data['inventory'][0].get('type'), 'I')
-        self.assertEqual(data['inventory'][0].get('id'), '[Item SKU]')
-        self.assertEqual(data['inventory'][0].get('total_quantity'), '[total quantity]')
-        self.assertEqual(data['inventory'][0].get('committed_quantity'), '[committed quantity]')
-        self.assertEqual(data['inventory'][0].get('entered_quantity'), '[entered quantity]')
+        self.assertEqual(data['inventory'][0].get('id'), '[I0 SKU]')
+        self.assertEqual(data['inventory'][0].get('total_quantity'), '[I0 total quantity]')
+        self.assertEqual(data['inventory'][0].get('committed_quantity'), '[I0 committed quantity]')
+        self.assertEqual(data['inventory'][0].get('entered_quantity'), '[I0 entered quantity]')
 
-        self.assertEqual(data['inventory'][1].get('type'), 'R')
-        self.assertEqual(data['inventory'][1].get('id'), '[Item SKU]')
-        self.assertEqual(data['inventory'][1].get('receipt_total_quantity'), '[total quantity]')
-        self.assertEqual(data['inventory'][1].get('receipt_scheduled_date'), '[date]')
+        receipts = data['inventory'][0].get('receipts')
+        self.assertTrue(isinstance(receipts, list))
+        self.assertEqual(len(receipts), 2)
+        self.assertEqual(receipts[0].get('type'), 'R')
+        self.assertEqual(receipts[0].get('reference'), '[I0 R0 Reference]')
+        self.assertEqual(receipts[0].get('sku'), '[I0 R0 SKU]')
+        self.assertEqual(receipts[0].get('i_sku'), '[I0 SKU]')
+        self.assertEqual(receipts[0].get('receipt_total_quantity'), '[I0 R0 total quantity]')
+        self.assertEqual(receipts[0].get('receipt_scheduled_date'), '[I0 R0 date]')
+        self.assertEqual(receipts[1].get('type'), 'R')
+        self.assertEqual(receipts[1].get('reference'), '[I0 R1 Reference]')
+        self.assertEqual(receipts[1].get('sku'), '[I0 R1 SKU]')
+        self.assertEqual(receipts[1].get('i_sku'), '[I0 SKU]')
+        self.assertEqual(receipts[1].get('receipt_total_quantity'), '[I0 R1 total quantity]')
+        self.assertEqual(receipts[1].get('receipt_scheduled_date'), '[I0 R1 date]')
+
+        self.assertEqual(data['inventory'][1].get('type'), 'I')
+        self.assertEqual(data['inventory'][1].get('id'), '[I1 SKU]')
+        self.assertEqual(data['inventory'][1].get('total_quantity'), '[I1 total quantity]')
+        self.assertEqual(data['inventory'][1].get('committed_quantity'), '[I1 committed quantity]')
+        self.assertEqual(data['inventory'][1].get('entered_quantity'), '[I1 entered quantity]')
+
+        receipts = data['inventory'][1].get('receipts')
+        self.assertTrue(isinstance(receipts, list))
+        self.assertEqual(len(receipts), 2)
+        self.assertEqual(receipts[0].get('type'), 'R')
+        self.assertEqual(receipts[0].get('reference'), '[I1 R0 Reference]')
+        self.assertEqual(receipts[0].get('sku'), '[I1 R0 SKU]')
+        self.assertEqual(receipts[0].get('i_sku'), '[I1 SKU]')
+        self.assertEqual(receipts[0].get('receipt_total_quantity'), '[I1 R0 total quantity]')
+        self.assertEqual(receipts[0].get('receipt_scheduled_date'), '[I1 R0 date]')
+        self.assertEqual(receipts[1].get('type'), 'R')
+        self.assertEqual(receipts[1].get('reference'), None)
+        self.assertEqual(receipts[1].get('sku'), '[I1 R1 SKU]')
+        self.assertEqual(receipts[1].get('i_sku'), '[I1 SKU]')
+        self.assertEqual(receipts[1].get('receipt_total_quantity'), '')
+        self.assertEqual(receipts[1].get('receipt_scheduled_date'), '[I1 R1 date]')
 
 
-    def test_list_outline(self):
+    def test_non_prefixed_outline(self):
         outline = {
             "collection": "orderstatus",
-            "outline": ["id", "status"]
+            "outline": {"id": "0", "status": "1"}
         }
 
         csv2json = Csv2Json(outline)
-        csv_str = "12345,6"
+        csv_str = """12345,6
+54321,7"""
 
         json_data = csv2json.convert(csv_str)
         data = json.loads(json_data)
 
         self.assertTrue('orderstatus' in data)
         self.assertTrue(isinstance(data['orderstatus'], list))
-        self.assertEqual(len(data['orderstatus']), 1)
+        self.assertEqual(len(data['orderstatus']), 2)
 
         self.assertEqual(data['orderstatus'][0].get('id'), '12345')
         self.assertEqual(data['orderstatus'][0].get('status'), '6')
+        self.assertEqual(data['orderstatus'][1].get('id'), '54321')
+        self.assertEqual(data['orderstatus'][1].get('status'), '7')
 
 class TestTasks(TestCase):
     def test_get_messages(self):
-        r = StringIO('line0\nline1\nline2\nline3\nline4\n')
 
-        # test without lines_per_message
-        messages = get_messages(r)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], r.getvalue())
+        converted_message = json.dumps({"orderstatus": [
+            {"id": "0", "status": "4"},
+            {"id": "1", "status": "3"},
+            {"id": "2", "status": "2"},
+            {"id": "3", "status": "1"},
+            {"id": "4", "status": "0"}
+        ]})
 
-        # test lines_per_message greater than actual number of lines
-        messages = get_messages(r, 100)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], r.getvalue())
+        messages_per_delivery = 2
+        messages = get_messages(converted_message, messages_per_delivery)
 
-        # test lines_per_message less than actual number of lines, and not dividing evenly
-        messages = get_messages(r, 2)
         self.assertEqual(len(messages), 3)
-        self.assertEqual(messages[0], 'line0\nline1\n')
-        self.assertEqual(messages[1], 'line2\nline3\n')
-        self.assertEqual(messages[2], 'line4\n')
+
+        chunk0 = json.loads(messages[0])['orderstatus']
+        chunk1 = json.loads(messages[1])['orderstatus']
+        chunk2 = json.loads(messages[2])['orderstatus']
+
+        self.assertEqual(len(chunk0), 2)
+        self.assertEqual(len(chunk1), 2)
+        self.assertEqual(len(chunk2), 1)
+
+        self.assertEqual(chunk0[0]['id'], "0")
+        self.assertEqual(chunk0[0]['status'], "4")
+        self.assertEqual(chunk0[1]['id'], "1")
+        self.assertEqual(chunk0[1]['status'], "3")
+
+        self.assertEqual(chunk1[0]['id'], "2")
+        self.assertEqual(chunk1[0]['status'], "2")
+        self.assertEqual(chunk1[1]['id'], "3")
+        self.assertEqual(chunk1[1]['status'], "1")
+
+        self.assertEqual(chunk2[0]['id'], "4")
+        self.assertEqual(chunk2[0]['status'], "0")
+
+        messages_per_delivery = 0
+        messages = get_messages(converted_message, messages_per_delivery)
+        self.assertEqual(len(messages), 1)
+
+
 

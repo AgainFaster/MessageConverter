@@ -62,6 +62,9 @@ class Project(models.Model):
     delivery_message_age = models.IntegerField(
         help_text="How old a message has to be (in minutes) before it can be delivered. Use 0 for immediate.", default=0)
 
+    messages_per_delivery = models.IntegerField(
+        help_text="Maximum number of messages to send in one delivery call.", default=0)
+
     def __str__(self):
         return self.name
 
@@ -78,9 +81,6 @@ class PullProject(Project):
 
     pull_frequency = models.IntegerField(
         help_text="How often to pull new messages (in minutes). Minimum is the frequency of the pull_messages periodic task.")
-
-    file_lines_per_message = models.IntegerField(
-        help_text="If a file has more lines than this number, it will be split into multiple messages each with up to this number of lines. Use 0 for unlimited.", default=0)
 
     def __str__(self):
         return self.name

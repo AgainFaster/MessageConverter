@@ -54,28 +54,6 @@ def convert_pulled_message(original_message, converted_message=None):
         logger.info('Created message id: %s' % converted_message.id)
 
 
-def get_messages(r, lines_per_message=None):
-    if not lines_per_message:
-        messages = [r.getvalue()]
-    else:
-        messages = []
-        r.seek(0)
-        all_lines = r.readlines()
-
-        first_line = 0
-        last_line = lines_per_message
-
-        while True:
-            message = ''.join(all_lines[first_line:last_line])
-            if message:
-                messages.append(message)
-                first_line += lines_per_message
-                last_line += lines_per_message
-            else:
-                break
-    return messages
-
-
 @shared_task
 def pull_messages():
     """
@@ -128,15 +106,11 @@ def pull_messages():
                 r = StringIO()
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
                 session.retrlines('RETR ' + file, lambda line: r.write('%s\n' % line))
-                messages = get_messages(r, pull_project.file_lines_per_message)
+
+                original_message = IncomingMessage.objects.create(project=pull_project, message=r.getvalue(), file_name=file)
                 r.close()
 
-                message_counter = 1
-                for message in messages:
-                    logger.info("Converting part %s of %s from %s" % (message_counter, len(messages), file))
-                    original_message = IncomingMessage.objects.create(project=pull_project, message=message, file_name=file)
-                    convert_pulled_message(original_message)
-                    message_counter += 1
+                convert_pulled_message(original_message)
 
                 logger.info("Finished converting message file: %s" % file)
 
@@ -165,6 +139,28 @@ def pull_messages():
         logger.info("%s messages files pulled for %s project." % (pull_count, pull_project))
 
 
+def get_messages(converted_message, messages_per_delivery):
+    message_data = []
+    first_index = 0
+    last_index = messages_per_delivery
+    if messages_per_delivery:
+        data = json.loads(converted_message)
+        for key in data:
+            if isinstance(data[key], list):
+
+                while True:
+                    chunk = {key: data[key][first_index:last_index]}
+                    if chunk[key]:
+                        message_data.append(json.dumps(chunk))
+                        first_index += messages_per_delivery
+                        last_index += messages_per_delivery
+                    else:
+                        break
+    if not message_data:
+        message_data.append(converted_message)
+    return message_data
+
+
 def _send_to_api(project, undelivered):
     message_ids = []
 
@@ -176,21 +172,23 @@ def _send_to_api(project, undelivered):
     # request.add_header('X-Hub-Access-Token', settings.X_Hub_Access_Token)
 
     for header in project.send_to_api.apiheader_set.all():
-        # headers.update({header.name: header.value})
         headers[header.name] = header.value
 
     for message in undelivered:
 
-        # json.loads(message.converted_message)
-        # shipments['shipments'] += json.loads(message.converted_message)
-        # message_ids.append(message.id)
 
         try:
-            data = message.converted_message
-            response = requests.post(host, data, headers=headers)
-            response.raise_for_status()
+            message_data = get_messages(message.converted_message, project.messages_per_delivery)
+
+            part = 1
+            for data in message_data:
+                logger.info('Sending part %s of %s for message id %s' % (part, len(message_data), message.id))
+                response = requests.post(host, data, headers=headers)
+                response.raise_for_status()
+                part += 1
+
             message_ids.append(message.id)
-            logger.info('Message id %s delivered: %s' % (message.id, response.text))
+            logger.info('Message id %s was fully delivered.' % (message.id,))
         except Exception as e:
             logger.error('Error delivering message id %s. Exception Type: %s, Exception: %s' % (message.id, type(e), e))
             ravenClient(dsn=getattr(settings, 'SENTRY_DSN', '')).captureException(extra={"message_id": message.id})
@@ -257,7 +255,7 @@ def deliver_messages():
         undelivered = ConvertedMessageQueue.objects.filter(delivered=False, project=project).order_by('created')
 
         if project.delivery_message_age:
-            newest_message_cutoff = datetime.now() - datetime.timedelta(project.delivery_message_age)
+            newest_message_cutoff = datetime.now() - timedelta(project.delivery_message_age)
             # exclude anything that's too new
             undelivered = undelivered.exclude(created__gt=newest_message_cutoff)
             logger.info("Excluding messages newer than %s (%s minutes ago)" % (newest_message_cutoff, project.delivery_message_age))
