@@ -114,6 +114,7 @@ class Csv2Json(object):
                         "carrier": header_row[30],
                         "service": header_row[11],
                         "freight_cost": header_row[97],
+                        "total_weight": header_row[48],
                         "shipping_method": header_row[31],
                         "tracking": tracking_number,
                         "shipped_at": header_row[9],
