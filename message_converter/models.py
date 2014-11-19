@@ -82,6 +82,12 @@ class PullProject(Project):
     pull_frequency = models.IntegerField(
         help_text="How often to pull new messages (in minutes). Minimum is the frequency of the pull_messages periodic task.")
 
+    check_file_size_interval = models.IntegerField(default=0,
+        help_text="How often to check on a file size (in seconds) to determine if the file is done being written to. 0 won't check.")
+
+    max_file_size_wait_time = models.IntegerField(default=5*60,
+        help_text="Max time to wait for a file to be done being written to (in seconds). Default is 5 minutes.")
+
     def __str__(self):
         return self.name
 

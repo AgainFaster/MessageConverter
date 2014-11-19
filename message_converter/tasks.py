@@ -10,15 +10,18 @@ import time
 from datetime import datetime, timedelta
 # from rest_framework.request import Request
 from django.conf import settings
+from django.core.cache import cache
 import requests
 import json
 from message_converter.csv2json import Csv2Json
 from message_converter.models import ConvertedMessageQueue, Project, LastDelivery, PullProject, LastPull, \
     IncomingMessage
 from raven import Client as ravenClient
+from time import sleep
 
 logger = get_task_logger(__name__)
 
+LOCK_EXPIRE = 60 * 10 # Lock expires in 10 minutes
 
 @shared_task
 def add(x, y):
@@ -54,6 +57,29 @@ def convert_pulled_message(original_message, converted_message=None):
         logger.info('Created message id: %s' % converted_message.id)
 
 
+def _get_ftp_file_size(file, session):
+    file_sizes = {}
+    session.retrlines('LIST', lambda line: file_sizes.update({line.split()[-1]: int(line.split()[-5])}))
+    return file_sizes.get(file)
+
+
+class LockAccessError(Exception):
+    pass
+
+
+def acquire_lock(lock_id):
+    # cache.add returns False if the key already exists, True if it doesn't, and 0 if the cache fails
+    lock_result = cache.add(lock_id, 'true', LOCK_EXPIRE)
+    if not isinstance(lock_result, bool):
+        raise LockAccessError('Could not access the cache.')
+    return lock_result
+
+
+def release_lock(lock_id):
+    # memcache delete is very slow, but we have to use it to take
+    # advantage of using add() for atomic locking
+    cache.delete(lock_id)
+
 @shared_task
 def pull_messages():
     """
@@ -84,6 +110,17 @@ def pull_messages():
             logger.info("Not ready to pull messages for %s project yet." % pull_project)
             continue  # not enough time has passed
 
+
+        # lock pull project from running again
+        lock_id = 'pull_project_lock-%s' % (pull_project.name)
+        try:
+            if not acquire_lock(lock_id):
+                logger.info('Pull project task is already running for project %s' % pull_project.name)
+                return
+        except LockAccessError:
+            logger.error('Could not acquire lock for pull project %s' % pull_project.name)
+            raise
+
         logger.info("Pulling messages for %s project." % pull_project)
 
         session = ftplib.FTP(pull_project.pull_from_ftp.host, pull_project.pull_from_ftp.user, pull_project.pull_from_ftp.password)
@@ -96,12 +133,40 @@ def pull_messages():
 
         pull_count = 0
         file_type = '.' + pull_project.from_type.format.lower()
+
         for file in session.nlst():
 
             # TODO, add pattern matching
             if file.lower().endswith(file_type) or file.lower().endswith('.txt'):
 
                 logger.info("Pulling message file: %s" % file)
+
+                if pull_project.check_file_size_interval:
+                    time_spent_waiting = 0
+                    # check file size
+                    old_size = _get_ftp_file_size(file, session)
+
+                    # wait until the file stops being written to
+                    while True:
+                        # wait to check file size again
+                        sleep(pull_project.check_file_size_interval)
+
+                        time_spent_waiting += pull_project.check_file_size_interval
+
+                        new_size = _get_ftp_file_size(file, session)
+                        if old_size == new_size:
+                            # file size not changing anymore, let's get out of here
+                            logger.info('Waited %s seconds for %s to finish writing.' % (time_spent_waiting, file))
+                            break
+
+                        # never wait more than 5 minutes
+                        if time_spent_waiting >= pull_project.max_file_size_wait_time:
+                            error = 'Waited too long for file %s to finish being written to (%s seconds).' % (file, time_spent_waiting)
+                            logger.error(error)
+                            raise Exception(error)
+
+                        old_size = new_size
+
 
                 r = StringIO()
                 # session.retrbinary('RETR ' + pull_project.pull_from_ftp.path, r.write)
@@ -137,6 +202,8 @@ def pull_messages():
 
         last_pull.save()
         logger.info("%s messages files pulled for %s project." % (pull_count, pull_project))
+        release_lock(lock_id)
+
 
 
 def get_messages(converted_message, messages_per_delivery):
