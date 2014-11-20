@@ -106,7 +106,7 @@ def pull_messages():
         last_pull, created = LastPull.objects.get_or_create(pull_project=pull_project)
 
         span = datetime.now() - last_pull.last_pulled
-        if span < timedelta(minutes=pull_project.delivery_frequency):
+        if span < timedelta(minutes=pull_project.pull_frequency):
             logger.info("Not ready to pull messages for %s project yet." % pull_project)
             continue  # not enough time has passed
 
