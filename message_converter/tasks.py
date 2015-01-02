@@ -18,7 +18,7 @@ from message_converter.models import ConvertedMessageQueue, Project, LastDeliver
     IncomingMessage
 from raven import Client as ravenClient
 from time import sleep
-import sys
+import locale
 
 logger = get_task_logger(__name__)
 
@@ -273,8 +273,7 @@ def _send_to_api(project, undelivered):
 
 
 def _send_to_ftp(project, undelivered):
-
-    logger.info('Default encoding: %s' % sys.getdefaultencoding())
+    logger.info('Preferred encoding: %s' % locale.getpreferredencoding(False))
 
     message_ids = []
 
