@@ -206,7 +206,6 @@ def pull_messages():
         release_lock(lock_id)
 
 
-
 def get_messages(converted_message, messages_per_delivery):
     message_data = []
     first_index = 0
@@ -280,7 +279,7 @@ def _send_to_ftp(project, undelivered):
     message_ids = []
 
     file_name = 'workfile-%s.txt' % time.strftime("%Y_%m_%d_%H_%M_%S")
-    with open(file_name, 'w+', newline='\r\n') as f:
+    with open(file_name, 'w+', encoding='utf-8', newline='\r\n') as f:
         for message in undelivered:
             f.write(message.converted_message)
             message_ids.append(message.id)
@@ -301,6 +300,11 @@ def _send_to_ftp(project, undelivered):
         logger.error('Could not remove work file: "%s". Exception Type: %s, Exception: %s' % (file_name, type(e), e))
 
     return message_ids
+
+
+@shared_task
+def test_celery():
+    logger.info('test complete')
 
 
 @shared_task
