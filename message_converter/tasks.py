@@ -116,7 +116,7 @@ def pull_messages():
         lock_id = 'pull_project_lock-%s' % (pull_project.name)
         try:
             if not acquire_lock(lock_id):
-                logger.info('Pull project task is already running for project %s' % pull_project.name)
+                logger.warning('Pull project task is already running for project %s' % pull_project.name)
                 return
         except LockAccessError:
             logger.error('Could not acquire lock for pull project %s' % pull_project.name)
@@ -326,16 +326,6 @@ def deliver_messages():
             logger.info("Not ready to deliver messages for %s project yet." % project)
             continue  # not enough time has passed
 
-        # lock deliver project from running again
-        lock_id = 'deliver_project_lock-%s' % (project.name)
-        try:
-            if not acquire_lock(lock_id):
-                logger.info('Deliver project task is already running for project %s' % project.name)
-                return
-        except LockAccessError:
-            logger.error('Could not acquire lock for deliver project %s' % project.name)
-            raise
-
         undelivered = ConvertedMessageQueue.objects.filter(delivered=False, project=project).order_by('created')
 
         if project.delivery_message_age:
@@ -347,6 +337,16 @@ def deliver_messages():
         if not undelivered:
             logger.info("No messages to deliver for %s project." % project)
             continue
+
+        # lock deliver project from running again
+        lock_id = 'deliver_project_lock-%s' % (project.name)
+        try:
+            if not acquire_lock(lock_id):
+                logger.warning('Deliver project task is already running for project %s' % project.name)
+                return
+        except LockAccessError:
+            logger.error('Could not acquire lock for deliver project %s' % project.name)
+            raise
 
         try:
             if project.send_to_ftp:
