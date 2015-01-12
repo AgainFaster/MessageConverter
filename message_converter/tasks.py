@@ -164,6 +164,7 @@ def pull_messages():
                         if time_spent_waiting >= pull_project.max_file_size_wait_time:
                             error = 'Waited too long for file %s to finish being written to (%s seconds).' % (file, time_spent_waiting)
                             logger.error(error)
+                            release_lock(lock_id)
                             raise Exception(error)
 
                         old_size = new_size
@@ -325,6 +326,16 @@ def deliver_messages():
             logger.info("Not ready to deliver messages for %s project yet." % project)
             continue  # not enough time has passed
 
+        # lock deliver project from running again
+        lock_id = 'deliver_project_lock-%s' % (project.name)
+        try:
+            if not acquire_lock(lock_id):
+                logger.info('Deliver project task is already running for project %s' % project.name)
+                return
+        except LockAccessError:
+            logger.error('Could not acquire lock for deliver project %s' % project.name)
+            raise
+
         undelivered = ConvertedMessageQueue.objects.filter(delivered=False, project=project).order_by('created')
 
         if project.delivery_message_age:
@@ -351,6 +362,8 @@ def deliver_messages():
             logger.error('Error delivering messages for project id %s. Exception Type: %s, Exception: %s' % (project.id, type(e), e))
             if created:
                 last_delivery.delete()
+
+        release_lock(lock_id)
 
 
 
