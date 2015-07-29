@@ -1,5 +1,5 @@
 from django.contrib import admin
-from message_converter.models import ApiProject, PullProject, FtpAccessSetting, ApiAccessSetting, IncomingMessage, ConvertedMessageQueue, ApiHeader
+from message_converter.models import ApiProject, PullProject, FtpAccessSetting, ApiAccessSetting, IncomingMessage, ConvertedMessageQueue, ApiHeader, MessageType
 
 
 class ApiProjectAdmin(admin.ModelAdmin):
@@ -27,6 +27,10 @@ class IncomingMessageAdmin(admin.ModelAdmin):
 
 
 class ConvertedMessageQueueAdmin(admin.ModelAdmin):
+    raw_id_fields = ["original_message"]
+    readonly_fields = ["original_message"]
+
+class MessageTypeAdmin(admin.ModelAdmin):
     pass
 
 
@@ -37,3 +41,4 @@ admin.site.register(FtpAccessSetting, FtpAccessSettingAdmin)
 admin.site.register(ApiAccessSetting, ApiAccessSettingAdmin)
 admin.site.register(IncomingMessage, IncomingMessageAdmin)
 admin.site.register(ConvertedMessageQueue, ConvertedMessageQueueAdmin)
+admin.site.register(MessageType, MessageTypeAdmin)

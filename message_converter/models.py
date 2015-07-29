@@ -68,13 +68,17 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
-
+# Internet -> MessageConverter -> FTP/API
+# Accept incoming messages as a POST Request, convert them if necessary, and send them off to an API/FTP somewhere else
 class ApiProject(Project):
 
     def __str__(self):
         return self.name
 
 
+# FTP -> MessageConverter -> Internet
+# Push
+# Occasionally poll FTP/API for new files, convert them if necessary, and send them off to an API/FTP somewhere else
 class PullProject(Project):
     pull_from_ftp = models.ForeignKey(FtpAccessSetting, null=True, blank=True, help_text="Pull from an FTP endpoint. Leave blank if pulling from an API instead.")
     pull_from_api = models.ForeignKey(ApiAccessSetting, null=True, blank=True, help_text="Pull from an API endpoint. Leave blank if pulling from an FTP instead.")
@@ -115,14 +119,14 @@ class ConvertedMessageQueue(models.Model):
 
 
 class LastDelivery(models.Model):
-    project = models.ForeignKey(Project, unique=True)
+    project = models.OneToOneField(Project)
     last_delivered = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '%s - %s' % (self.project, self.last_delivered)
 
 class LastPull(models.Model):
-    pull_project = models.ForeignKey(PullProject, unique=True)
+    pull_project = models.OneToOneField(PullProject)
     last_pulled = models.DateTimeField(auto_now=True)
 
     def __str__(self):

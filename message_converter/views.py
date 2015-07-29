@@ -7,14 +7,25 @@ import logging
 
 # from MyProject.MyApp import CalcClass
 from message_converter.json2csv import Json2Csv
-from message_converter.models import IncomingMessage, ConvertedMessageQueue, ApiProject
+from message_converter.models import IncomingMessage, ConvertedMessageQueue, ApiProject, Project
 
 logging.basicConfig(level=logging.DEBUG)
 
 class ApiProjectView(APIView):
 
     def get(self, request, *args, **kw):
-        return self._response(request, 'GET is currently not implemented. Try POST.')
+        try:
+            project = Project.objects.get(name=kw['project_name'])
+        except Project.DoesNotExist:
+            return self._response(request, 'Project name does not exist.', False)
+
+        if project.to_type.format != 'JSON':
+            return self._response(request, 'Project is not configured to return JSON.', False)
+
+        converted_messages = project.convertedmessagequeue_set.all().order_by("-created")
+        converted_messages = [json.loads(m.converted_message) for m in converted_messages]
+        return self._response(request, converted_messages, True)
+        # return self._response(request, 'GET is currently not implemented. Try POST.')
 
     def post(self, request, *args, **kw):
         # the raw json is in request.POST['_content']
@@ -43,8 +54,11 @@ class ApiProjectView(APIView):
             Example:
             {
                 "outlines": [
-                    {"first_record": ["record_type", "HDR"], "map": [["billing_address_city", "order.billing_address.city"], ["billing_address_firstname", "order.billing_address.firstname"]]},
-                    {"collection": "order.line_items", "first_record": ["record_type", "DTL"], "map": [["line_item_name", "name"], ["line_item_quantity", "quantity"]]}
+                    {"first_record": ["record_type", "HDR"],
+                     "map": [["billing_address_city", "order.billing_address.city"],
+                             ["billing_address_firstname", "order.billing_address.firstname"]]},
+                    {"collection": "order.line_items", "first_record": ["record_type", "DTL"],
+                     "map": [["line_item_name", "name"], ["line_item_quantity", "quantity"]]}
                 ]
             }
 

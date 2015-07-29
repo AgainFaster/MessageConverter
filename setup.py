@@ -61,13 +61,12 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/technical.html#install-requires-vs-requirements-files
     install_requires=[
-        'Django>=1.6.5',
-        'South>=0.8.4',
-        'celery>=3.1.12',
-        'django-celery>=3.1.10',
-        'djangorestframework>=2.3.14',
+        'Django>=1.8.2',
+        'celery>=3.1.18',
+        'django-celery>=3.1.16',
+        'djangorestframework>=3.1.3',
         'Markdown>=2.4.1',
-        'requests>=2.3.0',
+        'requests>=2.5.1',
     ],
 
     # If there are data files included in your packages that need to be

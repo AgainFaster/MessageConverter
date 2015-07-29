@@ -1,192 +1,162 @@
 # -*- coding: utf-8 -*-
-from south.utils import datetime_utils as datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import django.db.models.deletion
+import django.core.validators
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'MessageType'
-        db.create_table('message_converter_messagetype', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('type', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('message_converter', ['MessageType'])
+    dependencies = [
+    ]
 
-        # Adding model 'ApiAccessSetting'
-        db.create_table('message_converter_apiaccesssetting', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('host', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
-            ('user', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
-            ('api_key', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
-        ))
-        db.send_create_signal('message_converter', ['ApiAccessSetting'])
-
-        # Adding model 'FtpAccessSetting'
-        db.create_table('message_converter_ftpaccesssetting', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('host', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
-            ('user', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
-            ('password', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
-            ('path', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal('message_converter', ['FtpAccessSetting'])
-
-        # Adding model 'Project'
-        db.create_table('message_converter_project', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
-            ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('from_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='from_type_projects', to=orm['message_converter.MessageType'])),
-            ('to_type', self.gf('django.db.models.fields.related.ForeignKey')(related_name='to_type_projects', to=orm['message_converter.MessageType'])),
-            ('send_to_ftp', self.gf('django.db.models.fields.related.ForeignKey')(null=True, related_name='send_to_ftp_projects', to=orm['message_converter.FtpAccessSetting'], blank=True)),
-            ('send_to_api', self.gf('django.db.models.fields.related.ForeignKey')(null=True, related_name='send_to_api_projects', to=orm['message_converter.ApiAccessSetting'], blank=True)),
-            ('delivery_frequency', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal('message_converter', ['Project'])
-
-        # Adding model 'ApiProject'
-        db.create_table('message_converter_apiproject', (
-            ('project_ptr', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, primary_key=True, to=orm['message_converter.Project'])),
-        ))
-        db.send_create_signal('message_converter', ['ApiProject'])
-
-        # Adding model 'PullProject'
-        db.create_table('message_converter_pullproject', (
-            ('project_ptr', self.gf('django.db.models.fields.related.OneToOneField')(unique=True, primary_key=True, to=orm['message_converter.Project'])),
-            ('pull_from_ftp', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['message_converter.FtpAccessSetting'], blank=True)),
-            ('pull_from_api', self.gf('django.db.models.fields.related.ForeignKey')(null=True, to=orm['message_converter.ApiAccessSetting'], blank=True)),
-            ('pull_frequency', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal('message_converter', ['PullProject'])
-
-        # Adding model 'IncomingMessage'
-        db.create_table('message_converter_incomingmessage', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('message', self.gf('django.db.models.fields.TextField')()),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['message_converter.Project'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('message_converter', ['IncomingMessage'])
-
-        # Adding model 'ConvertedMessageQueue'
-        db.create_table('message_converter_convertedmessagequeue', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('original_message', self.gf('django.db.models.fields.related.ForeignKey')(on_delete=models.SET_NULL, null=True, to=orm['message_converter.IncomingMessage'])),
-            ('converted_message', self.gf('django.db.models.fields.TextField')()),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['message_converter.Project'])),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('delivered', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('message_converter', ['ConvertedMessageQueue'])
-
-        # Adding model 'LastDelivery'
-        db.create_table('message_converter_lastdelivery', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('project', self.gf('django.db.models.fields.related.ForeignKey')(unique=True, to=orm['message_converter.Project'])),
-            ('last_delivered', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-        ))
-        db.send_create_signal('message_converter', ['LastDelivery'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'MessageType'
-        db.delete_table('message_converter_messagetype')
-
-        # Deleting model 'ApiAccessSetting'
-        db.delete_table('message_converter_apiaccesssetting')
-
-        # Deleting model 'FtpAccessSetting'
-        db.delete_table('message_converter_ftpaccesssetting')
-
-        # Deleting model 'Project'
-        db.delete_table('message_converter_project')
-
-        # Deleting model 'ApiProject'
-        db.delete_table('message_converter_apiproject')
-
-        # Deleting model 'PullProject'
-        db.delete_table('message_converter_pullproject')
-
-        # Deleting model 'IncomingMessage'
-        db.delete_table('message_converter_incomingmessage')
-
-        # Deleting model 'ConvertedMessageQueue'
-        db.delete_table('message_converter_convertedmessagequeue')
-
-        # Deleting model 'LastDelivery'
-        db.delete_table('message_converter_lastdelivery')
-
-
-    models = {
-        'message_converter.apiaccesssetting': {
-            'Meta': {'object_name': 'ApiAccessSetting'},
-            'api_key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'host': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'user': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'})
-        },
-        'message_converter.apiproject': {
-            'Meta': {'object_name': 'ApiProject', '_ormbases': ['message_converter.Project']},
-            'project_ptr': ('django.db.models.fields.related.OneToOneField', [], {'unique': 'True', 'primary_key': 'True', 'to': "orm['message_converter.Project']"})
-        },
-        'message_converter.convertedmessagequeue': {
-            'Meta': {'object_name': 'ConvertedMessageQueue'},
-            'converted_message': ('django.db.models.fields.TextField', [], {}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'delivered': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'original_message': ('django.db.models.fields.related.ForeignKey', [], {'on_delete': 'models.SET_NULL', 'null': 'True', 'to': "orm['message_converter.IncomingMessage']"}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['message_converter.Project']"})
-        },
-        'message_converter.ftpaccesssetting': {
-            'Meta': {'object_name': 'FtpAccessSetting'},
-            'host': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'path': ('django.db.models.fields.TextField', [], {}),
-            'user': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'})
-        },
-        'message_converter.incomingmessage': {
-            'Meta': {'object_name': 'IncomingMessage'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'message': ('django.db.models.fields.TextField', [], {}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['message_converter.Project']"})
-        },
-        'message_converter.lastdelivery': {
-            'Meta': {'object_name': 'LastDelivery'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_delivered': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'project': ('django.db.models.fields.related.ForeignKey', [], {'unique': 'True', 'to': "orm['message_converter.Project']"})
-        },
-        'message_converter.messagetype': {
-            'Meta': {'object_name': 'MessageType'},
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'type': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'message_converter.project': {
-            'Meta': {'object_name': 'Project'},
-            'delivery_frequency': ('django.db.models.fields.IntegerField', [], {}),
-            'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'from_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'from_type_projects'", 'to': "orm['message_converter.MessageType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'send_to_api': ('django.db.models.fields.related.ForeignKey', [], {'null': 'True', 'related_name': "'send_to_api_projects'", 'to': "orm['message_converter.ApiAccessSetting']", 'blank': 'True'}),
-            'send_to_ftp': ('django.db.models.fields.related.ForeignKey', [], {'null': 'True', 'related_name': "'send_to_ftp_projects'", 'to': "orm['message_converter.FtpAccessSetting']", 'blank': 'True'}),
-            'to_type': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'to_type_projects'", 'to': "orm['message_converter.MessageType']"})
-        },
-        'message_converter.pullproject': {
-            'Meta': {'object_name': 'PullProject', '_ormbases': ['message_converter.Project']},
-            'project_ptr': ('django.db.models.fields.related.OneToOneField', [], {'unique': 'True', 'primary_key': 'True', 'to': "orm['message_converter.Project']"}),
-            'pull_frequency': ('django.db.models.fields.IntegerField', [], {}),
-            'pull_from_api': ('django.db.models.fields.related.ForeignKey', [], {'null': 'True', 'to': "orm['message_converter.ApiAccessSetting']", 'blank': 'True'}),
-            'pull_from_ftp': ('django.db.models.fields.related.ForeignKey', [], {'null': 'True', 'to': "orm['message_converter.FtpAccessSetting']", 'blank': 'True'})
-        }
-    }
-
-    complete_apps = ['message_converter']
+    operations = [
+        migrations.CreateModel(
+            name='ApiAccessSetting',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('host', models.CharField(max_length=100)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ApiHeader',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('name', models.CharField(max_length=100)),
+                ('value', models.CharField(max_length=100)),
+                ('setting', models.ForeignKey(to='message_converter.ApiAccessSetting')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ConvertedMessageQueue',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('converted_message', models.TextField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('delivered', models.BooleanField(default=False)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='FtpAccessSetting',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('host', models.CharField(max_length=100)),
+                ('user', models.CharField(max_length=100)),
+                ('password', models.CharField(max_length=100)),
+                ('path', models.TextField(null=True, blank=True)),
+                ('processed_path', models.TextField(help_text='This is the path where files will be moved to after they are processed. It will be ignored if delete_processed=True.', null=True, blank=True)),
+                ('delete_processed', models.BooleanField(default=False, help_text='This will delete files after they are processed rather than moving them to the processed_path.')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='IncomingMessage',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('message', models.TextField()),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('file_name', models.CharField(null=True, max_length=200, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='LastDelivery',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('last_delivered', models.DateTimeField(auto_now=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='LastPull',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('last_pulled', models.DateTimeField(auto_now=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='MessageType',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('name', models.CharField(max_length=100)),
+                ('type_code', models.CharField(max_length=100)),
+                ('format', models.CharField(max_length=100)),
+                ('description', models.TextField(null=True, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Project',
+            fields=[
+                ('id', models.AutoField(auto_created=True, serialize=False, primary_key=True, verbose_name='ID')),
+                ('name', models.CharField(unique=True, validators=[django.core.validators.RegexValidator('^[\\w-]+$', 'Enter only alphanumeric, dash, or underscore.', 'invalid')], max_length=100)),
+                ('description', models.TextField(null=True, blank=True)),
+                ('enabled', models.BooleanField(default=True)),
+                ('conversion_parameters', models.TextField(help_text='JSON parameters', null=True, blank=True)),
+                ('delivery_frequency', models.IntegerField(help_text='How often to deliver converted messages (in minutes). Use 0 for immediate. Minimum is the frequency of the deliver_messages periodic task.')),
+                ('delivery_message_age', models.IntegerField(default=0, help_text='How old a message has to be (in minutes) before it can be delivered. Use 0 for immediate.')),
+                ('messages_per_delivery', models.IntegerField(default=0, help_text='Maximum number of messages to send in one delivery call.')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ApiProject',
+            fields=[
+                ('project_ptr', models.OneToOneField(parent_link=True, to='message_converter.Project', primary_key=True, auto_created=True, serialize=False)),
+            ],
+            bases=('message_converter.project',),
+        ),
+        migrations.CreateModel(
+            name='PullProject',
+            fields=[
+                ('project_ptr', models.OneToOneField(parent_link=True, to='message_converter.Project', primary_key=True, auto_created=True, serialize=False)),
+                ('pull_frequency', models.IntegerField(help_text='How often to pull new messages (in minutes). Minimum is the frequency of the pull_messages periodic task.')),
+                ('check_file_size_interval', models.IntegerField(default=0, help_text="How often to check on a file size (in seconds) to determine if the file is done being written to. 0 won't check.")),
+                ('max_file_size_wait_time', models.IntegerField(default=300, help_text='Max time to wait for a file to be done being written to (in seconds). Default is 5 minutes.')),
+                ('pull_from_api', models.ForeignKey(help_text='Pull from an API endpoint. Leave blank if pulling from an FTP instead.', null=True, to='message_converter.ApiAccessSetting', blank=True)),
+                ('pull_from_ftp', models.ForeignKey(help_text='Pull from an FTP endpoint. Leave blank if pulling from an API instead.', null=True, to='message_converter.FtpAccessSetting', blank=True)),
+            ],
+            bases=('message_converter.project',),
+        ),
+        migrations.AddField(
+            model_name='project',
+            name='from_type',
+            field=models.ForeignKey(to='message_converter.MessageType', related_name='from_type_projects'),
+        ),
+        migrations.AddField(
+            model_name='project',
+            name='send_to_api',
+            field=models.ForeignKey(help_text='An API destination to deliver the converted messages.', null=True, related_name='send_to_api_projects', to='message_converter.ApiAccessSetting', blank=True),
+        ),
+        migrations.AddField(
+            model_name='project',
+            name='send_to_ftp',
+            field=models.ForeignKey(help_text='An FTP destination to deliver the converted messages.', null=True, related_name='send_to_ftp_projects', to='message_converter.FtpAccessSetting', blank=True),
+        ),
+        migrations.AddField(
+            model_name='project',
+            name='to_type',
+            field=models.ForeignKey(to='message_converter.MessageType', related_name='to_type_projects'),
+        ),
+        migrations.AddField(
+            model_name='lastdelivery',
+            name='project',
+            field=models.ForeignKey(to='message_converter.Project', unique=True),
+        ),
+        migrations.AddField(
+            model_name='incomingmessage',
+            name='project',
+            field=models.ForeignKey(to='message_converter.Project'),
+        ),
+        migrations.AddField(
+            model_name='convertedmessagequeue',
+            name='original_message',
+            field=models.ForeignKey(null=True, to='message_converter.IncomingMessage', on_delete=django.db.models.deletion.SET_NULL),
+        ),
+        migrations.AddField(
+            model_name='convertedmessagequeue',
+            name='project',
+            field=models.ForeignKey(to='message_converter.Project'),
+        ),
+        migrations.AddField(
+            model_name='lastpull',
+            name='pull_project',
+            field=models.ForeignKey(to='message_converter.PullProject', unique=True),
+        ),
+    ]

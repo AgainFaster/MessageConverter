@@ -45,6 +45,8 @@ def convert_pulled_message(original_message, converted_message=None):
     csv2json = Csv2Json(outline)
     if pull_project.from_type.type_code == 'EDI945':
         converted = csv2json.convert_edi_945_to_wof_shipment(original_message.message)
+    elif pull_project.from_type.type_code == 'EDI944':
+        converted = csv2json.convert_edi_944_to_wof_shipment(original_message.message)
     else:
         converted = csv2json.convert(original_message.message)
 
