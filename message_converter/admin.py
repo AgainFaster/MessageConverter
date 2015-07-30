@@ -2,11 +2,16 @@ from django.contrib import admin
 from message_converter.models import ApiProject, PullProject, FtpAccessSetting, ApiAccessSetting, IncomingMessage, ConvertedMessageQueue, ApiHeader, MessageType
 
 
-class ApiProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ['name', 'enabled']
+    list_editable = ['enabled']
+
+
+class ApiProjectAdmin(ProjectAdmin):
     pass
 
 
-class PullProjectAdmin(admin.ModelAdmin):
+class PullProjectAdmin(ProjectAdmin):
     pass
 
 

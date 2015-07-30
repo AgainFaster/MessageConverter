@@ -10,15 +10,22 @@ class MessageType(models.Model):
     format = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
 
+    class Meta:
+        verbose_name = "Message Type"
+
     def __str__(self):
         return '%s (%s)' % (self.name, self.format)
 
 
 class ApiAccessSetting(models.Model):
     host = models.CharField(max_length=100)
+    nickname = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        verbose_name = "API Connection"
 
     def __str__(self):
-        return self.host
+        return "%s (%s)" % (self.nickname, self.host) or self.host
 
 
 class ApiHeader(models.Model):
@@ -26,18 +33,23 @@ class ApiHeader(models.Model):
     value = models.CharField(max_length=100)
     setting = models.ForeignKey(ApiAccessSetting)
 
+    class Meta:
+        verbose_name = "API Header"
+
     def __str__(self):
         return "%s: %s" % (self.name, self.value)
 
 
 class FtpAccessSetting(models.Model):
-    # name = models.CharField(max_length=100)
     host = models.CharField(max_length=100)
     user = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     path = models.TextField(blank=True, null=True)
     processed_path = models.TextField(blank=True, null=True, help_text="This is the path where files will be moved to after they are processed. It will be ignored if delete_processed=True.")
     delete_processed = models.BooleanField(default=False, help_text="This will delete files after they are processed rather than moving them to the processed_path.")
+
+    class Meta:
+        verbose_name = "FTP Connection"
 
     def __str__(self):
         return self.host + self.path
@@ -72,6 +84,9 @@ class Project(models.Model):
 # Accept incoming messages as a POST Request, convert them if necessary, and send them off to an API/FTP somewhere else
 class ApiProject(Project):
 
+    class Meta:
+        verbose_name = "API Project"
+
     def __str__(self):
         return self.name
 
@@ -92,6 +107,9 @@ class PullProject(Project):
     max_file_size_wait_time = models.IntegerField(default=5*60,
         help_text="Max time to wait for a file to be done being written to (in seconds). Default is 5 minutes.")
 
+    class Meta:
+        verbose_name = "Pull Project"
+
     def __str__(self):
         return self.name
 
@@ -102,6 +120,9 @@ class IncomingMessage(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     file_name = models.CharField(max_length=200, blank=True, null=True)
 
+    class Meta:
+        verbose_name = "Incoming Message"
+        
     def __str__(self):
         return '%s - %s' % (self.project, self.created)
 
@@ -113,6 +134,9 @@ class ConvertedMessageQueue(models.Model):
     project = models.ForeignKey(Project)
     created = models.DateTimeField(auto_now_add=True)
     delivered = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Converted Message"
 
     def __str__(self):
         return '%s - %s' % (self.project, self.created)
