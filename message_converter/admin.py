@@ -34,6 +34,9 @@ class IncomingMessageAdmin(admin.ModelAdmin):
 class ConvertedMessageQueueAdmin(admin.ModelAdmin):
     raw_id_fields = ["original_message"]
     readonly_fields = ["original_message"]
+    list_display = ['delivered', '__str__']
+    list_display_links = ['__str__']
+    list_filter = ['project', 'delivered']
 
 class MessageTypeAdmin(admin.ModelAdmin):
     pass
