@@ -1,5 +1,6 @@
 from django.contrib import admin
-from message_converter.models import ApiProject, PullProject, FtpAccessSetting, ApiAccessSetting, IncomingMessage, ConvertedMessageQueue, ApiHeader, MessageType
+from message_converter.models import ApiProject, PullProject, FtpAccessSetting, ApiAccessSetting, IncomingMessage, ConvertedMessageQueue, ApiHeader, MessageType, \
+    LastPull
 
 
 class ProjectAdmin(admin.ModelAdmin):
@@ -28,17 +29,21 @@ class ApiAccessSettingAdmin(admin.ModelAdmin):
 
 
 class IncomingMessageAdmin(admin.ModelAdmin):
-    pass
+    list_filter = ['project']
 
 
 class ConvertedMessageQueueAdmin(admin.ModelAdmin):
     raw_id_fields = ["original_message"]
     readonly_fields = ["original_message"]
-    list_display = ['delivered', '__str__']
+    list_display = ['delivered', '__str__', 'file_name']
     list_display_links = ['__str__']
     list_filter = ['project', 'delivered']
 
 class MessageTypeAdmin(admin.ModelAdmin):
+    pass
+
+
+class LastPullAdmin(admin.ModelAdmin):
     pass
 
 
@@ -50,3 +55,4 @@ admin.site.register(ApiAccessSetting, ApiAccessSettingAdmin)
 admin.site.register(IncomingMessage, IncomingMessageAdmin)
 admin.site.register(ConvertedMessageQueue, ConvertedMessageQueueAdmin)
 admin.site.register(MessageType, MessageTypeAdmin)
+admin.site.register(LastPull, LastPullAdmin)

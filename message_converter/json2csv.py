@@ -65,12 +65,12 @@ class Json2Csv(object):
         if self.collection:
             try:
                 data = reduce(operator.getitem, self.collection, data)
+                for d in data:
+                    self.process_single_item_as_row(d)
             except KeyError:
+                # element doesn't exist in dictionary
                 # move forward anyway
                 pass
-
-        for d in data:
-            self.process_single_item_as_row(d)
 
     def process_row(self, item):
         """Process a row of json data against the key map

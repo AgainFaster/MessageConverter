@@ -31,7 +31,7 @@ class ApiAccessSetting(models.Model):
 class ApiHeader(models.Model):
     name = models.CharField(max_length=100)
     value = models.CharField(max_length=100)
-    setting = models.ForeignKey(ApiAccessSetting)
+    setting = models.ForeignKey(ApiAccessSetting, related_name="headers")
 
     class Meta:
         verbose_name = "API Header"
@@ -45,8 +45,12 @@ class FtpAccessSetting(models.Model):
     user = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     path = models.TextField(blank=True, null=True)
-    processed_path = models.TextField(blank=True, null=True, help_text="This is the path where files will be moved to after they are processed. It will be ignored if delete_processed=True.")
-    delete_processed = models.BooleanField(default=False, help_text="This will delete files after they are processed rather than moving them to the processed_path.")
+    processed_path = models.TextField(blank=True, null=True,
+                                      help_text="This is the path where files will be moved to after they are processed. It will be ignored if delete_processed=True.")
+    delete_processed = models.BooleanField(default=False,
+                                           help_text="This will delete files after they are processed rather than moving them to the processed_path.")
+    organize_archive = models.BooleanField(default=True,
+                                           help_text="Attempt to organize the Processed Path by Year/Month.")
 
     class Meta:
         verbose_name = "FTP Connection"
@@ -82,6 +86,7 @@ class Project(models.Model):
 
 # Internet -> MessageConverter -> FTP/API
 # Accept incoming messages as a POST Request, convert them if necessary, and send them off to an API/FTP somewhere else
+# Messages are initiated by external services and handled upon receipt.
 class ApiProject(Project):
 
     class Meta:
@@ -94,6 +99,7 @@ class ApiProject(Project):
 # FTP -> MessageConverter -> Internet
 # Push
 # Occasionally poll FTP/API for new files, convert them if necessary, and send them off to an API/FTP somewhere else
+# Messages are initiated by Message Converter's celery task.
 class PullProject(Project):
     pull_from_ftp = models.ForeignKey(FtpAccessSetting, null=True, blank=True, help_text="Pull from an FTP endpoint. Leave blank if pulling from an API instead.")
     pull_from_api = models.ForeignKey(ApiAccessSetting, null=True, blank=True, help_text="Pull from an API endpoint. Leave blank if pulling from an FTP instead.")
@@ -134,6 +140,7 @@ class ConvertedMessageQueue(models.Model):
     project = models.ForeignKey(Project)
     created = models.DateTimeField(auto_now_add=True)
     delivered = models.BooleanField(default=False)
+    file_name = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         verbose_name = "Converted Message"
